@@ -1,0 +1,22 @@
+<!--#set(MessageInfo m)-->
+<!--#set(PropertyInfo attr)-->
+<!--#set(JSMessageWrapper utils)-->
+<!--#set(TypeInfo type)-->
+$!{utils.imports}
+
+/**
+$!{utils.comment(" * ")}
+*/
+interface $!{m.name} {
+<!--#for(attr : utils.properties)-->
+
+<!--		#if(attr.comment)-->
+	/**
+$!{utils.formatComment(attr.comment,"	 * ")}
+	 */
+<!--		#end-->
+    $!{attr.name}?:$!{utils.toTypeString(attr.typeInfo)};
+<!--#end-->
+}
+
+export default $!{m.name};

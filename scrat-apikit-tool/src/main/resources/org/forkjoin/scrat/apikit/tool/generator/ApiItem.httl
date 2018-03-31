@@ -1,0 +1,97 @@
+<!--#set(ApiInfo m)-->
+<!--#set(JavaClientApiWrapper utils)-->
+<!--#set(TypeInfo type)-->
+<!--#set(ApiMethodInfo method)-->
+<!--#set(ApiMethodParamInfo param)-->
+package $!{utils.getDistPack()};
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Future;
+
+import org.forkjoin.scrat.apikit.client.*;
+
+$!{utils.imports}
+
+
+/**
+$!{utils.comment(" * ")}
+ */
+public class $!{utils.name} {
+    private HttpClientAdapter httpClientAdapter;
+
+    public $!{utils.name}() {
+    }
+
+    public $!{utils.name}(HttpClientAdapter httpClientAdapter) {
+        this.httpClientAdapter = httpClientAdapter;
+    }
+
+<!--#for(method : m.methodInfos)-->
+
+   /**
+$!{utils.formatBaseComment(method.comment,"    * ")}
+    *
+$!{utils.requestComment(method,"    * ")}
+    */
+    public $!{utils.resultData(method)} $!{method.name}Data($!{utils.params(method)}) {
+        $!{method.resultWrappedType.name}<$!{utils.result(method)}> result = $!{method.name}($!{utils.args(method,false)});
+        if(!result.isSuccess()){
+            Exception ex = result.getException();
+            if(ex != null){
+                throw new RuntimeException(ex.getMessage(), ex);
+            }else{
+                throw new RuntimeException(result.toString());
+            }
+        }
+        return result.getData();
+    }
+
+   /**
+$!{utils.formatBaseComment(method.comment,"    * ")}
+    *
+$!{utils.requestComment(method,"    * ")}
+    */
+    public $!{method.resultWrappedType.name}<$!{utils.result(method)}> $!{method.name}($!{utils.params(method)}) {
+        Map<String, Object> _uriVariables = new HashMap<>();
+<!--        #for(param : method.pathParams)-->
+        _uriVariables.put("$!{param.getName()}", $!{param.getName()});
+<!--        #end-->
+        String _url = ApiUtils.expandUriComponent("$!{method.url}", _uriVariables);
+
+<!--        #if(method.formParams)-->
+        <!--#set(param = method.formParams[0])-->
+        List<Entry<String, Object>> _form = $!{param.name}.encode("", new ArrayList<Entry<String, Object>>());
+        return httpClientAdapter.<$!{method.resultWrappedType.name}<$!{utils.result(method)}>,$!{utils.resultData(method)}>request("$!{method.type.name()}", _url, _form, _$!{method.index}Type, ${method.account});
+<!--        #else-->
+        return httpClientAdapter.<$!{method.resultWrappedType.name}<$!{utils.result(method)}>,$!{utils.resultData(method)}>request("$!{method.type.name()}", _url, null, _$!{method.index}Type, ${method.account});
+<!--        #end-->
+    }
+
+##下面是异步
+   /**
+$!{utils.formatBaseComment(method.comment,"    * ")}
+    *
+$!{utils.requestComment(method,"    * ")}
+    */
+    public Future<?> $!{method.name}($!{utils.asyncParams(method)}) {
+        Map<String, Object> _uriVariables = new HashMap<>();
+<!--        #for(param : method.pathParams)-->
+        _uriVariables.put("$!{param.getName()}", $!{param.getName()});
+<!--        #end-->
+        String _url = ApiUtils.expandUriComponent("$!{method.url}", _uriVariables);
+
+<!--        #if(method.formParams)-->
+        <!--#set(param = method.formParams[0])-->
+        List<Entry<String, Object>> _form = $!{param.name}.encode("", new ArrayList<Entry<String, Object>>());
+        return httpClientAdapter.requestAsync("$!{method.type.name()}", _url, _form, _$!{method.index}Type, ${method.account}, callable);
+<!--        #else-->
+        return httpClientAdapter.requestAsync("$!{method.type.name()}", _url, null, _$!{method.index}Type, ${method.account}, callable);
+<!--        #end-->
+    }
+<!--#end-->
+
+<!--#for(method : m.methodInfos)-->
+$!{utils.resultTypeString(method,"    ")}
+<!--#end-->
+}

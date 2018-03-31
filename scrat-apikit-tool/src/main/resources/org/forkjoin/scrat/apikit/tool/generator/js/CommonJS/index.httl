@@ -1,0 +1,28 @@
+<!--#set(Set<java.util.Map.Entry<String, Collection<MessageInfo>>> all)-->
+<!--#set(Collection<MessageInfo> values)-->
+<!--#set(Collection<ApiInfo> apis)-->
+<!--#set(MessageInfo info)-->
+<!--#set(ApiInfo api)-->
+'use strict';
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+<!--#for(api : apis)-->
+var _$!{api.name} = require('./$!{api.packageName.replace('.','/')}/$!{api.name}');
+var _$!{api.name}2 = _interopRequireDefault(_$!{api.name});
+<!--#end-->
+
+var _Apis = require('./Apis');
+var _Apis2 = _interopRequireDefault(_Apis);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+exports['default'] = _Apis2['default'];
+
+<!--#for(api : apis)-->
+exports.$!{api.name} = _$!{api.name}.$!{api.name};
+exports.$!{api.fieldName} = _$!{api.name}2['default'];
+<!--#end-->
