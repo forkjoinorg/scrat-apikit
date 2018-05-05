@@ -28,6 +28,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -152,7 +154,7 @@ public class ClassPathAnalyse implements Analyse {
             if (validAnnotation != null) {
                 fieldInfo.setFormParam(true);
             }
-            if(!fieldInfo.isFormParam() && !fieldInfo.isPathVariable()){
+            if (!fieldInfo.isFormParam() && !fieldInfo.isPathVariable()) {
                 continue;
             }
 
@@ -229,7 +231,8 @@ public class ClassPathAnalyse implements Analyse {
                 ? pathArray[0]
                 : null;
 
-        return (parentPath != null) ? Paths.get(parentPath, path).normalize().toString() : path;
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance().pathSegment(parentPath, path);
+        return (parentPath != null) ? uriComponentsBuilder.build().toUriString() : path;
     }
 
     private ActionType[] toActionTypes(RequestMethod[] requestMapping) {
