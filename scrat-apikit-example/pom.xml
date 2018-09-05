@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.forkjoin.scrat.apikit</groupId>
@@ -58,6 +58,30 @@
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
         </dependency>
-
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.forkjoin.scrat.apikit</groupId>
+                <artifactId>scrat-apikit-maven-plugin</artifactId>
+                <version>1.0.1-SNAPSHOT</version>
+                <configuration>
+                    <rootPackage>org.forkjoin.scrat.apikit.example</rootPackage>
+                    <tasks>
+                        <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask">
+                            <outPath>${project.build.directory}/src/test/java/</outPath>
+                            <rootPackage>org.forkjoin.scrat.apikit.example.client</rootPackage>
+                            <nameMaperSource><![CDATA[(?<name>.*)]]></nameMaperSource>
+                            <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>
+                        </task>
+                        <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask">
+                            <outPath>${project.build.directory}/src/test/js/</outPath>
+                            <type>ES6</type>
+                            <version>3</version>
+                        </task>
+                    </tasks>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

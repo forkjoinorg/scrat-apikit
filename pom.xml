@@ -12,6 +12,7 @@
         <module>scrat-apikit-core</module>
         <module>scrat-apikit-tool</module>
         <module>scrat-apikit-example</module>
+        <module>scrat-apikit-maven-plugin</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -207,6 +208,21 @@
                 <repository>
                     <id>lipspay</id>
                     <url>http://nexus3.lipspay.com/repository/maven-releases/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>jinengjie</id>
+            <build>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>jinengjie</id>
+                    <url>http://nexus.jinengjie.com/repository/maven-snapshots/</url>
+                </snapshotRepository>
+                <repository>
+                    <id>jinengjie</id>
+                    <url>http://nexus.jinengjie.com/repository/maven-releases/</url>
                 </repository>
             </distributionManagement>
         </profile>
