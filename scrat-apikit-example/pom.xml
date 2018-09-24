@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.forkjoin.scrat.apikit</groupId>
         <artifactId>scrat-apikit</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.0.2-SNAPSHOT</version>
     </parent>
     <artifactId>scrat-apikit-example</artifactId>
     <packaging>jar</packaging>
@@ -64,7 +64,7 @@
             <plugin>
                 <groupId>org.forkjoin.scrat.apikit</groupId>
                 <artifactId>scrat-apikit-maven-plugin</artifactId>
-                <version>1.0.1-SNAPSHOT</version>
+                <version>1.0.2-SNAPSHOT</version>
                 <configuration>
                     <rootPackage>org.forkjoin.scrat.apikit.example</rootPackage>
                     <tasks>

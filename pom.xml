@@ -7,7 +7,7 @@
     <groupId>org.forkjoin.scrat.apikit</groupId>
     <artifactId>scrat-apikit</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.2-SNAPSHOT</version>
     <modules>
         <module>scrat-apikit-core</module>
         <module>scrat-apikit-tool</module>
@@ -212,6 +212,21 @@
             </distributionManagement>
         </profile>
         <profile>
+            <id>my</id>
+            <build>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>rdc-releases</id>
+                    <url>https://repo.rdc.aliyun.com/repository/449-release-3LvtEE/</url>
+                </snapshotRepository>
+                <repository>
+                    <id>rdc-snapshots</id>
+                    <url>https://repo.rdc.aliyun.com/repository/449-snapshot-f8JYUj/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+        <profile>
             <id>jinengjie</id>
             <build>
             </build>
@@ -227,4 +242,36 @@
             </distributionManagement>
         </profile>
     </profiles>
+    <repositories>
+        <repository>
+            <id>rdc-releases</id>
+            <url>https://repo.rdc.aliyun.com/repository/449-release-3LvtEE/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>rdc-snapshots</id>
+            <url>https://repo.rdc.aliyun.com/repository/449-snapshot-f8JYUj/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>aliyun</id>
+            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
