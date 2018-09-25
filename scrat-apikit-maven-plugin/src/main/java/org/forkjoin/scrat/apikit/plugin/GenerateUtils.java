@@ -3,11 +3,8 @@ package org.forkjoin.scrat.apikit.plugin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.forkjoin.scrat.apikit.plugin.bean.GitTask;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
 import org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask;
@@ -27,14 +24,7 @@ import org.forkjoin.scrat.apikit.tool.impl.ClassPathAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathMessageAnalyse;
 import org.forkjoin.scrat.apikit.tool.jgit.GitGenerator;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class GenerateUtils {
 
@@ -134,6 +124,7 @@ public class GenerateUtils {
             JavaScriptGenerator generator = new JavaScriptGenerator("test");
             generator.setType(javaScriptTask.getType());
             generator.setOutPath(javaScriptTask.getOutPath());
+            generator.setJsPackageName(javaScriptTask.getJsPackageName());
             generator.setVersion("2");
             return generator;
         } else {

@@ -13,7 +13,9 @@ import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.ChainingCredentialsProvider;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.NetRCCredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.forkjoin.scrat.apikit.tool.AbstractFileGenerator;
@@ -61,7 +63,7 @@ public class GitGenerator implements Generator {
 
         CredentialsProvider cp;
         if (StringUtils.isEmpty(gitUser)) {
-            cp = new AwtCredentialsProvider();
+            cp = new ChainingCredentialsProvider(new NetRCCredentialsProvider(), new AwtCredentialsProvider());
         }else{
             cp = new UsernamePasswordCredentialsProvider(gitUser, getPassword);
         }

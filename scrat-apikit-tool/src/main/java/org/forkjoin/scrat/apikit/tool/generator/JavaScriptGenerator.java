@@ -194,4 +194,12 @@ public class JavaScriptGenerator extends HttlGenerator {
     public void setType(JSWrapper.Type type) {
         this.type = type;
     }
+
+    public String getJsPackageName() {
+        return jsPackageName;
+    }
+
+    public void setJsPackageName(String jsPackageName) {
+        this.jsPackageName = jsPackageName;
+    }
 }

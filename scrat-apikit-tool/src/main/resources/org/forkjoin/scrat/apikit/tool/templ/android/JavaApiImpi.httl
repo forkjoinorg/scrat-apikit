@@ -13,18 +13,18 @@ import java.util.Map.Entry;
 
 import com.android.volley.Request;
 
-import $!{utils.rootPackage}.Result;
-import $!{utils.rootPackage}.HttpClientAdapter.Callback;
-import $!{utils.rootPackage}.HttpClientAdapter.RequestCallback;
-import $!{utils.rootPackage}.HttpClientAdapter.RequestParam;
+import $!{utils.jsPackageName}.Result;
+import $!{utils.jsPackageName}.HttpClientAdapter.Callback;
+import $!{utils.jsPackageName}.HttpClientAdapter.RequestCallback;
+import $!{utils.jsPackageName}.HttpClientAdapter.RequestParam;
 
 /**
 $!{utils.comment(" * ")}
  */
-public class $!{m.name} extends $!{utils.rootPackage}.Api {
-    private $!{utils.rootPackage}.HttpClientAdapter httpClientAdapter;
+public class $!{m.name} extends $!{utils.jsPackageName}.Api {
+    private $!{utils.jsPackageName}.HttpClientAdapter httpClientAdapter;
 
-    public $!{m.name}($!{utils.rootPackage}.HttpClientAdapter httpClientAdapter) {
+    public $!{m.name}($!{utils.jsPackageName}.HttpClientAdapter httpClientAdapter) {
         this.httpClientAdapter = httpClientAdapter;
     }
 <!--#for(method : m.methodInfos)-->

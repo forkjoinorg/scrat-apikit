@@ -11,16 +11,16 @@ import java.util.*;
 import java.util.concurrent.Future;
 import java.util.Map.Entry;
 
-import $!{utils.rootPackage}.Result;
-import $!{utils.rootPackage}.HttpClientAdapter.Callback;
+import $!{utils.jsPackageName}.Result;
+import $!{utils.jsPackageName}.HttpClientAdapter.Callback;
 
 /**
 $!{utils.comment(" * ")}
  */
-public class $!{m.name} extends $!{utils.rootPackage}.Api {
-    private $!{utils.rootPackage}.HttpClientAdapter httpClientAdapter;
+public class $!{m.name} extends $!{utils.jsPackageName}.Api {
+    private $!{utils.jsPackageName}.HttpClientAdapter httpClientAdapter;
 
-    public $!{m.name}($!{utils.rootPackage}.HttpClientAdapter httpClientAdapter) {
+    public $!{m.name}($!{utils.jsPackageName}.HttpClientAdapter httpClientAdapter) {
         this.httpClientAdapter = httpClientAdapter;
     }
 
