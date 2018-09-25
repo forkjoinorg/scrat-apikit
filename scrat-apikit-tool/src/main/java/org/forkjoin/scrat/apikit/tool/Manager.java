@@ -69,4 +69,18 @@ public class Manager {
     public void setPath(String path) {
         this.path = path;
     }
+
+    @Override
+    public String toString() {
+        return "Manager{" +
+                "path='" + path + '\'' +
+                ", rootPackage='" + rootPackage + '\'' +
+                ", fileCharset='" + fileCharset + '\'' +
+                ", fileSuffix='" + fileSuffix + '\'' +
+                ", objectFactory=" + objectFactory +
+                ", rootDir=" + rootDir +
+                ", rootDirPath='" + rootDirPath + '\'' +
+                ", context=" + context +
+                '}';
+    }
 }

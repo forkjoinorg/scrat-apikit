@@ -25,10 +25,11 @@
         <fast-classpath-scanner>2.18.1</fast-classpath-scanner>
 
         <org.eclipse.jdt.core.version>3.13.100</org.eclipse.jdt.core.version>
-        <org.eclipse.jgit.version>4.11.0.201803080745-r</org.eclipse.jgit.version>
+        <org.eclipse.jgit.version>5.1.1.201809181055-r</org.eclipse.jgit.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <paranamer.version>2.8</paranamer.version>
         <javassist.version>3.22.0-GA</javassist.version>
+        <airline.version>0.8</airline.version>
     </properties>
     <dependencies>
         <dependency>
@@ -81,6 +82,11 @@
                 <version>${org.eclipse.jgit.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit.pgm</artifactId>
+                <version>${org.eclipse.jgit.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.eclipse.jdt</groupId>
                 <artifactId>org.eclipse.jdt.core</artifactId>
                 <version>${org.eclipse.jdt.core.version}</version>
@@ -104,6 +110,11 @@
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
                 <version>${javassist.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.airlift</groupId>
+                <artifactId>airline</artifactId>
+                <version>${airline.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -43,6 +43,21 @@
             <artifactId>maven-core</artifactId>
             <version>3.1.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-dependency-tree</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jcabi</groupId>
+            <artifactId>jcabi-maven-slf4j</artifactId>
+            <version>0.8</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -56,12 +71,12 @@
                         <phase>process-classes</phase>
                     </execution>
                     <!-- if you want to generate help goal -->
-                    <execution>
-                        <id>help-goal</id>
-                        <goals>
-                            <goal>helpmojo</goal>
-                        </goals>
-                    </execution>
+                    <!--<execution>-->
+                        <!--<id>help-goal</id>-->
+                        <!--<goals>-->
+                            <!--<goal>helpmojo</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
                 </executions>
             </plugin>
         </plugins>

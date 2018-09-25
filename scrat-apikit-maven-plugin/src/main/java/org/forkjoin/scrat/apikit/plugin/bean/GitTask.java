@@ -1,5 +1,7 @@
 package org.forkjoin.scrat.apikit.plugin.bean;
 
+import java.util.List;
+
 public class GitTask extends Task{
 //     gitGenerator.setGitUrl("https://code.aliyun.com/gxhl/mz_mall.git");
     //                    gitGenerator.setGitUser("gitApi");
@@ -11,9 +13,12 @@ public class GitTask extends Task{
     private String url;
     private String user;
     private String password;
-    private String authorEmail;
-    private String authorName;
+    private String authorEmail = "apikit@forkjoin.org";
+    private String authorName="apikit";
     private Task task;
+    private String branch = "master";
+    private String srcUri;
+    private List<String> deleteUris;
 
     public String getUrl() {
         return url;
@@ -63,6 +68,22 @@ public class GitTask extends Task{
         this.task = task;
     }
 
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public String getSrcUri() {
+        return srcUri;
+    }
+
+    public void setSrcUri(String srcUri) {
+        this.srcUri = srcUri;
+    }
+
     @Override
     public String toString() {
         return "GitTask{" +
@@ -71,6 +92,19 @@ public class GitTask extends Task{
                 ", password='" + password + '\'' +
                 ", authorEmail='" + authorEmail + '\'' +
                 ", authorName='" + authorName + '\'' +
+                ", task=" + task +
+                ", branch='" + branch + '\'' +
+                ", srcUri='" + srcUri + '\'' +
+                ", deleteUris='" + deleteUris + '\'' +
                 '}';
     }
+
+    public List<String> getDeleteUris() {
+        return deleteUris;
+    }
+
+    public void setDeleteUris(List<String> deleteUris) {
+        this.deleteUris = deleteUris;
+    }
+
 }

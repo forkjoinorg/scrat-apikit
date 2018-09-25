@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.awtui.AwtCredentialsProvider;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -20,6 +21,7 @@ import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.Generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -56,7 +58,13 @@ public class GitGenerator implements Generator {
     @Override
     public void generate(Context context) throws Exception {
         Path tempDir = Files.createTempDirectory("apikit-git");
-        CredentialsProvider cp = new UsernamePasswordCredentialsProvider(gitUser, getPassword);
+
+        CredentialsProvider cp;
+        if (StringUtils.isEmpty(gitUser)) {
+            cp = new AwtCredentialsProvider();
+        }else{
+            cp = new UsernamePasswordCredentialsProvider(gitUser, getPassword);
+        }
         log.info("开始 git clone");
 
 //        git clone --depth=1
@@ -128,8 +136,9 @@ public class GitGenerator implements Generator {
             Iterable<PushResult> pushResults = git.push().setCredentialsProvider(cp).call();
 
             log.info("push结果:{}", Iterables.toString(pushResults));
+
         } finally {
-            FileUtils.deleteDirectory(tempDir.toFile());
+//            FileUtils.deleteDirectory(tempDir.toFile());
         }
 
     }

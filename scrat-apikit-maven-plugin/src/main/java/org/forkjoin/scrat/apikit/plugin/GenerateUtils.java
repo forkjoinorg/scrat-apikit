@@ -1,9 +1,15 @@
 package org.forkjoin.scrat.apikit.plugin;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.logging.Log;
-import org.forkjoin.scrat.apikit.plugin.bean.Group;
+import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.forkjoin.scrat.apikit.plugin.bean.GitTask;
+import org.forkjoin.scrat.apikit.plugin.bean.Group;
 import org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask;
 import org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask;
 import org.forkjoin.scrat.apikit.plugin.bean.Task;
@@ -21,9 +27,34 @@ import org.forkjoin.scrat.apikit.tool.impl.ClassPathAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathMessageAnalyse;
 import org.forkjoin.scrat.apikit.tool.jgit.GitGenerator;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class GenerateUtils {
+
+    public static <T> T deserialize(String json, Class<T> valueType) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper().enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+            TypeFactory tf = TypeFactory.defaultInstance()
+                    .withClassLoader(GenerateUtils.class.getClassLoader());
+            objectMapper.setTypeFactory(tf);
+            return objectMapper.readValue(json, valueType);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public static void generate(String groupJson, String sourcePath) {
+        Group group = deserialize(groupJson, Group.class);
+        generate(group, sourcePath, new SystemStreamLog());
+    }
+
     public static void generate(Group group, String sourcePath, Log log) {
         String rootPackage = group.getRootPackage();
         List<Task> tasks = group.getTasks();
@@ -37,14 +68,21 @@ public class GenerateUtils {
         manager.setRootPackage(rootPackage);
         manager.setObjectFactory(objectFactory);
         manager.analyse();
+
+        log.info(
+                "分析结果"
+                        + manager
+        );
         try {
             for (int i = 0; i < tasks.size(); i++) {
                 Task task = tasks.get(i);
                 log.info(
-                        "开始执行任务:"
+                        "开始执行任务,number:"
                                 + (i + 1)
-                                + "type:"
+                                + ",type:"
                                 + task.getClass().getSimpleName()
+                                + ",task:"
+                                + task
                 );
                 if (task instanceof GitTask) {
                     GitTask gitTask = (GitTask) task;
@@ -56,7 +94,11 @@ public class GenerateUtils {
                     gitGenerator.setGitEmail(gitTask.getAuthorEmail());
                     gitGenerator.setGitName(gitTask.getAuthorName());
 
-                    gitGenerator.setGenerator((AbstractFileGenerator) createGenerator(manager, task));
+                    gitGenerator.setGenerator((AbstractFileGenerator) createGenerator(manager, gitTask.getTask()));
+
+                    gitGenerator.setSrcUri(gitTask.getSrcUri());
+                    gitGenerator.setGitBranch(gitTask.getBranch());
+                    gitGenerator.setDeleteUris(gitTask.getDeleteUris());
                     manager.generate(gitGenerator);
                 } else {
                     Generator generator = createGenerator(manager, task);
@@ -95,7 +137,7 @@ public class GenerateUtils {
             generator.setVersion("2");
             return generator;
         } else {
-            throw new RuntimeException("错误的额任务类型:" + task.getClass());
+            throw new RuntimeException("错误的额任务类型:" + task.getClass() + ",task:" + task);
         }
     }
 
