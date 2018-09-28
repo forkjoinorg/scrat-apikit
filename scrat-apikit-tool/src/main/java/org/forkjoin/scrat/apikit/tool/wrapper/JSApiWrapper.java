@@ -39,7 +39,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 
 
     public String getFieldName() {
-        return  NameUtils.toFieldName(getName());;
+        return  NameUtils.toFieldName(getName());
     }
 
     public String getImports() {
