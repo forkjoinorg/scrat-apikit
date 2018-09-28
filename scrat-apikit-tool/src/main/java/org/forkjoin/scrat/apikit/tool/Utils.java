@@ -16,6 +16,12 @@ public final class Utils {
         return new File(path, packageName.replace(".", File.separator));
     }
 
+    public static File packToPath(String path, String packname, String name) {
+        File f = new File(path, packname.replace(".", File.separator));
+        f = new File(f, name );
+        return f;
+    }
+
     /**
      * 去掉对下划线的处理
      */

@@ -5,7 +5,7 @@
 <!--#set(ApiMethodParamInfo param)-->
 $!{utils.getImports(false)}
 
-class $!{m.name} extends AbstractApi {
+class $!{utils.name} extends AbstractApi {
 <!--#for(method : m.methodInfos)-->
 ##下面是异步带tag
     /**
@@ -33,8 +33,8 @@ class $!{m.name} extends AbstractApi {
 <!--#end-->
 }
 
-export { $!{m.name} };
-const $!{m.fieldName} = new $!{m.name}();
-$!{m.fieldName}._init(requestGroupImpi);
-export default $!{m.fieldName};
+export { $!{utils.name} };
+const $!{utils.fieldName} = new $!{utils.name}();
+$!{utils.fieldName}._init(requestGroupImpi);
+export default $!{utils.fieldName};
 

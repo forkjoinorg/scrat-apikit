@@ -126,6 +126,9 @@ public class GenerateUtils {
             generator.setOutPath(javaScriptTask.getOutPath());
             generator.setJsPackageName(javaScriptTask.getJsPackageName());
             generator.setVersion("2");
+            generator.setApiNameMaper(new PatternNameMaper(
+                    javaScriptTask.getNameMaperSource(), javaScriptTask.getNameMaperDist()
+            ));
             return generator;
         } else {
             throw new RuntimeException("错误的额任务类型:" + task.getClass() + ",task:" + task);

@@ -6,6 +6,9 @@ public class JavaScriptTask extends Task{
     protected String version;
     protected String jsPackageName;
     private JSWrapper.Type type = JSWrapper.Type.CommonJS;
+    private String nameMaperSource;
+
+    private String nameMaperDist;
 
     public String getVersion() {
         return version;
@@ -31,12 +34,31 @@ public class JavaScriptTask extends Task{
         this.jsPackageName = jsPackageName;
     }
 
+
+    public String getNameMaperSource() {
+        return nameMaperSource;
+    }
+
+    public void setNameMaperSource(String nameMaperSource) {
+        this.nameMaperSource = nameMaperSource;
+    }
+
+    public String getNameMaperDist() {
+        return nameMaperDist;
+    }
+
+    public void setNameMaperDist(String nameMaperDist) {
+        this.nameMaperDist = nameMaperDist;
+    }
+
     @Override
     public String toString() {
         return "JavaScriptTask{" +
                 "version='" + version + '\'' +
                 ", jsPackageName='" + jsPackageName + '\'' +
                 ", type=" + type +
+                ", nameMaperSource='" + nameMaperSource + '\'' +
+                ", nameMaperDist='" + nameMaperDist + '\'' +
                 '}';
     }
 }

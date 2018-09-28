@@ -1,20 +1,13 @@
-<!--#set(Set<java.util.Map.Entry<String, Collection<MessageInfo>>> all)-->
-<!--#set(Collection<MessageInfo> values)-->
-<!--#set(Collection<ApiInfo> apis)-->
-<!--#set(MessageInfo info)-->
-<!--#set(ApiInfo api)-->
+<!--#set(java.util.List<java.util.Map.Entry<String, String>> apis)-->
+<!--#set(java.util.Map.Entry<String, String> api)-->
 
 <!--#for(api : apis)-->
-<!--#if(api.packageName)-->
-import $!{api.name} from './$!{api.packageName.replace('.','/')}/$!{api.name}';
-<!--#else-->
-import $!{api.name} from './$!{api.name}';
-<!--#end-->
+import $!{api.key} from '.$!{api.value}';
 <!--#end-->
 
 
 export {
 <!--#for(api : apis)-->
-    $!{api.name},
+    $!{api.key},
 <!--#end-->
 };

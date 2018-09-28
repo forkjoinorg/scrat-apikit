@@ -13,8 +13,11 @@ import org.forkjoin.scrat.apikit.tool.wrapper.JSWrapper;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 这个版本还不能 ,解开泛型或者支持泛型
@@ -22,6 +25,9 @@ import java.util.Map;
 public class JavaScriptGenerator extends HttlGenerator {
     private JSWrapper.Type type = JSWrapper.Type.CommonJS;
     private String jsPackageName;
+    protected NameMaper apiNameMaper = new PatternNameMaper(
+            "(?<name>.*)Controller", "${name}"
+    );
 
     public JavaScriptGenerator(String jsPackageName) {
         this.jsPackageName = jsPackageName;
@@ -50,7 +56,7 @@ public class JavaScriptGenerator extends HttlGenerator {
 
     @Override
     public void generateApi(ApiInfo apiInfo) throws Exception {
-        JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName);
+        JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName, apiNameMaper);
         File dFile = getTsDFileName(utils);
         File file = getFileName(utils);
         utils.setType(type);
@@ -106,29 +112,22 @@ public class JavaScriptGenerator extends HttlGenerator {
 
     @Override
     public void generateTool() throws Exception {
-        //copy 工具文件
-//        copyTool("AbstractApi.d.ts");
-//        copyTool("AbstractApi.js");
-//
-//        copyTool("RequestGroup.d.ts");
-//        copyTool("RequestGroup.js");
-//
-//        copyTool("RequestGroupImpi.d.ts");
-//        copyTool("RequestGroupImpi.js");
-//
-//        copyTool("Request.d.ts");
-//        copyTool("Request.js");
-//
-//        copyTool("HttpUtils.d.ts");
-//        copyTool("HttpUtils.js");
-
         {
             Map<String, Object> parameters = new HashMap<>();
 
-//            Set<Map.Entry<String, Collection<MessageInfo>>> all = context.getMessages().getAll().entrySet();
-//            parameters.put("all", all);
-            parameters.put("values", context.getMessages());
-            parameters.put("apis", context.getApis().getValues());
+
+//            parameters.put("values", context.getMessages());
+
+//
+
+            List<Map.Entry> apis = context.getApis().getValues().stream().map(apiInfo -> {
+                JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName, apiNameMaper);
+                String value = utils.getPack().replace(".", "/") + '/' + utils.getName();
+                return new AbstractMap.SimpleImmutableEntry<>(utils.getName(), value);
+            }).collect(Collectors.toList());
+
+            parameters.put("apis", apis);
+
             File dFile = Utils.packToPath(outPath, "", "index", ".d.ts");
             File file = Utils.packToPath(outPath, "", "index", ".js");
 
@@ -167,24 +166,6 @@ public class JavaScriptGenerator extends HttlGenerator {
             }
             JsonUtils.mapper.writerWithDefaultPrettyPrinter().writeValue(packageFile, packageJson);
         }
-//        {
-//            Map<String, Object> parameters = new HashMap<>();
-//            Collection<ApiInfo> values = context.getApis().getValues();
-//            parameters.put("values", values);
-//            parameters.put("nameUtils", new NameUtils());
-//            File dFile = Utils.packToPath(outPath, "", "Apis", ".d.ts");
-//            execute(
-//                    parameters,
-//                    getTempl("Apis.d.httl"),
-//                    dFile
-//            );
-//            File file = Utils.packToPath(outPath, "", "Apis", ".js");
-//            execute(
-//                    parameters,
-//                    getTempl("Apis.httl"),
-//                    file
-//            );
-//        }
     }
 
     public JSWrapper.Type getType() {
@@ -201,5 +182,13 @@ public class JavaScriptGenerator extends HttlGenerator {
 
     public void setJsPackageName(String jsPackageName) {
         this.jsPackageName = jsPackageName;
+    }
+
+    public NameMaper getApiNameMaper() {
+        return apiNameMaper;
+    }
+
+    public void setApiNameMaper(NameMaper apiNameMaper) {
+        this.apiNameMaper = apiNameMaper;
     }
 }

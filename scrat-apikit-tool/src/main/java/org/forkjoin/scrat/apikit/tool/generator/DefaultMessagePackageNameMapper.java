@@ -10,6 +10,15 @@ public class DefaultMessagePackageNameMapper implements MessagePackageNameMapper
                 return dist.substring(1);
             }
             return dist;
+        }else{
+            int index = packageName.lastIndexOf(".");
+            if(index>-1){
+                String dist = packageName.substring(index, packageName.length());
+                if(dist.startsWith(".")){
+                    return dist.substring(1);
+                }
+                return dist;
+            }
         }
         return "core";
     }

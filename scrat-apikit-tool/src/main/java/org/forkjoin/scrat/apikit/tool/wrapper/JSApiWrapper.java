@@ -3,11 +3,13 @@ package org.forkjoin.scrat.apikit.tool.wrapper;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
+import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
 import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
 import org.forkjoin.scrat.apikit.tool.info.ApiMethodInfo;
 import org.forkjoin.scrat.apikit.tool.info.ApiMethodParamInfo;
 import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
 import org.forkjoin.scrat.apikit.tool.utils.CommentUtils;
+import org.forkjoin.scrat.apikit.tool.utils.NameUtils;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -21,10 +23,23 @@ import java.util.Map;
 public class JSApiWrapper extends JSWrapper<ApiInfo> {
     private String version;
     private String jsPackageName;
+    private NameMaper apiNameMaper;
 
-    public JSApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, String jsPackageName) {
+    public JSApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, String jsPackageName, NameMaper apiNameMaper) {
         super(context, moduleInfo, rootPackage);
         this.jsPackageName = jsPackageName;
+        this.apiNameMaper = apiNameMaper;
+    }
+
+
+    @Override
+    public String getName() {
+        return apiNameMaper.apply(super.getName());
+    }
+
+
+    public String getFieldName() {
+        return  NameUtils.toFieldName(getName());;
     }
 
     public String getImports() {

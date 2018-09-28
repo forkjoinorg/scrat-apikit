@@ -163,4 +163,5 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
     public void setAnnotations(boolean annotations) {
         isAnnotations = annotations;
     }
+
 }
