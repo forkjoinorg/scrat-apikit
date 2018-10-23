@@ -2,15 +2,13 @@
 <!--#set(PropertyInfo attr)-->
 <!--#set(JSMessageWrapper utils)-->
 <!--#set(TypeInfo type)-->
-'use strict';
-
 $!{utils.imports}
 
 /**
 $!{utils.comment(" * ")}
 */
 interface $!{m.name} {
-<!--#for(attr : m.properties)-->
+<!--#for(attr : utils.properties)-->
 
 <!--		#if(attr.comment)-->
 	/**

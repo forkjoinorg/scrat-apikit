@@ -2,7 +2,9 @@ package org.forkjoin.scrat.apikit.plugin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
 
@@ -12,7 +14,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class MavenUtils {
@@ -61,17 +65,29 @@ public class MavenUtils {
     }
 
 
-    private static URLClassLoader getUrlClassLoader(MavenProject project) throws DependencyResolutionRequiredException {
+    private static URLClassLoader getUrlClassLoader(MavenProject project) throws DependencyResolutionRequiredException, DependencyTreeBuilderException {
         List<String> compileClasspathElements = project.getCompileClasspathElements();
+        List<String> systemClasspathElements = project.getSystemClasspathElements();
         ClassRealm classLoader = (ClassRealm) MavenUtils.class.getClassLoader();
-
+//
+        Optional<ClassRealm> apiClassRealm = classLoader.getImportRealms().stream().filter((p) -> p.getId().equals("maven.api")).findFirst();
 
         URL[] urls = Stream.concat(
-                compileClasspathElements.stream().map(MavenUtils::toUrl),
+                Stream.concat(
+                        compileClasspathElements.stream().map(MavenUtils::toUrl),
+                        systemClasspathElements.stream().map(MavenUtils::toUrl)
+                ),
                 Stream.of(classLoader.getURLs())
         ).toArray(URL[]::new);
 
-        return new URLClassLoader(urls);
+
+        SystemStreamLog log = new SystemStreamLog();
+        log.info("urls:");
+        log.info(Arrays.toString(urls));
+
+        return apiClassRealm
+                .map(classRealm -> new URLClassLoader(urls, classRealm))
+                .orElseGet(() -> new URLClassLoader(urls));
     }
 
 

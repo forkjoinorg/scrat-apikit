@@ -228,12 +228,12 @@
             </build>
             <distributionManagement>
                 <snapshotRepository>
-                    <id>rdc-releases</id>
-                    <url>https://repo.rdc.aliyun.com/repository/449-release-3LvtEE/</url>
-                </snapshotRepository>
-                <repository>
                     <id>rdc-snapshots</id>
                     <url>https://repo.rdc.aliyun.com/repository/449-snapshot-f8JYUj/</url>
+                </snapshotRepository>
+                <repository>
+                    <id>rdc-releases</id>
+                    <url>https://repo.rdc.aliyun.com/repository/449-release-3LvtEE/</url>
                 </repository>
             </distributionManagement>
         </profile>

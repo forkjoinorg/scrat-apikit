@@ -58,17 +58,15 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
     }
 
 
-//    public String getEs5Imports() {
-//        //自己的目录级别
-//        int myLevel = getMyLevel();
-//        String str = StringUtils.repeat("../", myLevel);
-//
-//        return "var _AbstractApi2 = require(\"" + str + "AbstractApi\");\n" +
-//                "var _AbstractApi3 = _interopRequireDefault(_AbstractApi2);\n" +
-//                "\n" +
-//                "var _RequestGroupImpi = require(\"" + str + "RequestGroupImpi\");\n" +
-//                "var _RequestGroupImpi2 = _interopRequireDefault(_RequestGroupImpi);\n";
-//    }
+    public String getEs5Imports() {
+        //自己的目录级别
+        int myLevel = getMyLevel();
+        return "var _AbstractApi2 = require(\"apikit-core/lib/AbstractApi\");\n" +
+                "var _AbstractApi3 = _interopRequireDefault(_AbstractApi2);\n" +
+                "\n" +
+                "var _RequestGroupImpi = require(\"apikit-core/lib/RequestGroupImpi\");\n" +
+                "var _RequestGroupImpi2 = _interopRequireDefault(_RequestGroupImpi);\n";
+    }
 
 
     private int getMyLevel() {

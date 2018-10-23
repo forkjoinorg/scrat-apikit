@@ -1,5 +1,6 @@
 package org.forkjoin.scrat.apikit.tool.impl;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 import org.forkjoin.scrat.apikit.tool.Context;
@@ -35,6 +36,9 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
     private ArrayDeque<ClassInfo> analysDeque = new ArrayDeque<>();
     private List<MessageInfo> messageInfos = new ArrayList<>();
     private HashMap<ClassInfo, MessageInfo> messageMap = new HashMap<>();
+    private Set<Class> TYPE_BACK = ImmutableSet.of(
+            Class.class, Object.class, void.class, Void.class
+    );
 
     @Override
     public void analyse(Context context) {
@@ -132,25 +136,30 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                 messageInfo.addTypeParameter(typeParameter.getName());
             }
 
-            for (Method method : cls.getDeclaredMethods()) {
+            Set<String> nameSet = new HashSet<>();
+            for (Method method : cls.getMethods()) {
                 if (Modifier.isPublic(method.getModifiers())
                         && method.getParameterTypes().length == 0
-                        && method.getReturnType() != void.class
-                        && method.getReturnType() != Void.class
+                        && !TYPE_BACK.contains(method.getReturnType())
                         && (method.getName().startsWith("get") || method.getName().startsWith("is"))
-                        ) {
-                    TypeInfo typeInfo = TypeInfo.form(method.getGenericReturnType());
-                    PropertyDescriptor propertyDescriptor = BeanUtils.findPropertyForMethod(method);
-                    if (propertyDescriptor != null) {
-                        if (typeInfo == null) {
-                            throw new AnalyseException("类型解析失败!错误的字段:" + method.getGenericReturnType());
+                ) {
+                    try{
+                        TypeInfo typeInfo = TypeInfo.form(method.getGenericReturnType());
+                        PropertyDescriptor propertyDescriptor = BeanUtils.findPropertyForMethod(method);
+                        if (propertyDescriptor != null) {
+                            if (typeInfo == null) {
+                                throw new AnalyseException("类型解析失败!错误的字段:" + method.getGenericReturnType());
+                            }
+
+                            String name = propertyDescriptor.getName();
+                            if (!nameSet.contains(name)) {
+                                PropertyInfo propertyInfo = new PropertyInfo(name, typeInfo);
+                                messageInfo.add(propertyInfo);
+                                nameSet.add(name);
+                            }
                         }
-
-                        String name = propertyDescriptor.getName();
-
-                        PropertyInfo propertyInfo = new PropertyInfo(name, typeInfo);
-
-                        messageInfo.add(propertyInfo);
+                    }catch (AnalyseException ex){
+                        log.info("错误,忽略属性继续:{}",method,ex);
                     }
                 }
             }

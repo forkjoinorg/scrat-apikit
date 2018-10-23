@@ -8,7 +8,6 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.AccountApi = undefined;
 
 var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
 
@@ -30,13 +29,13 @@ $!{utils.es5Imports}
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-var $!{m.name} = function (_AbstractApi) {
-    (0, _inherits3["default"])($!{m.name}, _AbstractApi);
+var $!{utils.name} = function (_AbstractApi) {
+    (0, _inherits3["default"])($!{utils.name}, _AbstractApi);
 
-    function $!{m.name}() {
-        (0, _classCallCheck3["default"])(this, $!{m.name});
+    function $!{utils.name}() {
+        (0, _classCallCheck3["default"])(this, $!{utils.name});
 
-        var _this = (0, _possibleConstructorReturn3["default"])(this, ($!{m.name}.__proto__ || Object.getPrototypeOf($!{m.name})).apply(this, arguments));
+        var _this = (0, _possibleConstructorReturn3["default"])(this, ($!{utils.name}.__proto__ || Object.getPrototypeOf($!{utils.name})).apply(this, arguments));
 
 
 <!--#for(method : m.methodInfos)-->
@@ -53,20 +52,20 @@ var $!{m.name} = function (_AbstractApi) {
             <!--#end-->
             <!--#if(method.formParams)-->
             <!--#set(param = method.formParams[0])-->
-            return (0, _get3["default"])($!{m.name}.prototype.__proto__ || Object.getPrototypeOf($!{m.name}.prototype), "_request", _this).call(_this, "$!{m.fieldName}", "$!{method.type.name()}", "$!{method.url}", _path, $!{param.name});
+            return (0, _get3["default"])($!{utils.name}.prototype.__proto__ || Object.getPrototypeOf($!{utils.name}.prototype), "_request", _this).call(_this, "$!{utils.jsPackageName}", "$!{utils.fieldName}", "$!{method.type.name()}", "$!{method.url}", _path, $!{param.name});
             <!--#else-->
-            return (0, _get3["default"])($!{m.name}.prototype.__proto__ || Object.getPrototypeOf($!{m.name}.prototype), "_request", _this).call(_this, "$!{m.fieldName}", "$!{method.type.name()}", "$!{method.url}", _path, null);
+            return (0, _get3["default"])($!{utils.name}.prototype.__proto__ || Object.getPrototypeOf($!{utils.name}.prototype), "_request", _this).call(_this, "$!{utils.jsPackageName}",  "$!{utils.fieldName}", "$!{method.type.name()}", "$!{method.url}", _path, null);
             <!--#end-->
         };
 ##循环结束
 <!--#end-->
     }
 
-    return $!{m.name};
+    return $!{utils.name};
 }(_AbstractApi3["default"]);
 
-exports.$!{m.name} = $!{m.name};
+exports.$!{utils.name} = $!{utils.name};
 
-var $!{m.fieldName} = new $!{m.name}();
-$!{m.fieldName}._init(_RequestGroupImpi2["default"]);
-exports["default"] = $!{m.fieldName};
+var $!{utils.fieldName} = new $!{utils.name}();
+$!{utils.fieldName}._init(_RequestGroupImpi2["default"]);
+exports["default"] = $!{utils.fieldName};
