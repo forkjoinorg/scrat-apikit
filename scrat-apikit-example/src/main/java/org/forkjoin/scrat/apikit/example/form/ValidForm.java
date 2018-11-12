@@ -3,7 +3,14 @@ package org.forkjoin.scrat.apikit.example.form;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+/**
+ * ValidForm
+ * ValidForm
+ */
 public class ValidForm {
+    /**
+     * 名称
+     */
     @NotEmpty
     @NotNull
     private String name;

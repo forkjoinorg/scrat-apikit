@@ -40,12 +40,12 @@ public class GenerateUtils {
         }
     }
 
-    public static void generate(String groupJson, String sourcePath) {
+    public static void generate(String groupJson, String sourcePath, String[] srcPaths) {
         Group group = deserialize(groupJson, Group.class);
-        generate(group, sourcePath, new SystemStreamLog());
+        generate(group, sourcePath, srcPaths, new SystemStreamLog());
     }
 
-    public static void generate(Group group, String sourcePath, Log log) {
+    public static void generate(Group group, String sourcePath, String[] srcPaths, Log log) {
         String rootPackage = group.getRootPackage();
         List<Task> tasks = group.getTasks();
         if (CollectionUtils.isEmpty(tasks)) {
@@ -56,6 +56,7 @@ public class GenerateUtils {
         Manager manager = new Manager();
         manager.setPath(sourcePath);
         manager.setRootPackage(rootPackage);
+        manager.setSrcPaths(srcPaths);
         manager.setObjectFactory(objectFactory);
         manager.analyse();
 

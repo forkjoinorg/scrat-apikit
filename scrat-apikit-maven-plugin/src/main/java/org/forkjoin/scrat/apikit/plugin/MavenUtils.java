@@ -26,17 +26,19 @@ public class MavenUtils {
         mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
-    public static void generate(MavenProject project, Group group, String sourcePath) {
+    public static void generate(MavenProject project, Group group, String sourcePath, String[] srcPaths) {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             ClassLoader loader = getUrlClassLoader(project);
             @SuppressWarnings("unchecked")
-            Class<GenerateUtils> generateUtilsClass = (Class<GenerateUtils>) loader.loadClass(GenerateUtils.class.getName());
+            Class<GenerateUtils> generateUtilsClass = (Class<GenerateUtils>) loader
+                    .loadClass(GenerateUtils.class.getName());
 
             Method generateMethod = generateUtilsClass.getMethod(
                     "generate",
                     String.class,
-                    String.class
+                    String.class,
+                    String[].class
             );
 
             String groupJson = serialize(group);
@@ -45,7 +47,7 @@ public class MavenUtils {
              * 切换后续操作的classLoad加载器
              */
             Thread.currentThread().setContextClassLoader(loader);
-            generateMethod.invoke(null, groupJson, sourcePath);
+            generateMethod.invoke(null, groupJson, sourcePath, srcPaths);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {

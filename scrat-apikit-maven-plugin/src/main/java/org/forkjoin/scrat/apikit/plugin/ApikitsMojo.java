@@ -11,7 +11,6 @@ import org.apache.maven.project.MavenProject;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mojo(
         name = "apis",
@@ -29,16 +28,17 @@ public class ApikitsMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         MavenProject project = session.getCurrentProject();
-        List<String> compileSourceRoots = project
+        String[] compileSourceRoots = project
                 .getCompileSourceRoots()
                 .stream()
                 .filter(str -> !str.contains("generated-sources/annotations"))
-                .collect(Collectors.toList());
+                .toArray(String[]::new);
 
-        if (compileSourceRoots.size() > 1) {
+
+        if (compileSourceRoots.length > 1) {
             throw new RuntimeException("Multiple compileSourceRoot is not supported");
         }
-        String sourcePath = compileSourceRoots.get(0);
+        String sourcePath = compileSourceRoots[0];
 
         try {
 
@@ -47,7 +47,7 @@ public class ApikitsMojo extends AbstractMojo {
             for (Group group : groups) {
                 getLog().info("开始执行第一组" + groups);
 
-                MavenUtils.generate(project, group, sourcePath);
+                MavenUtils.generate(project, group, sourcePath, compileSourceRoots);
 
                 getLog().info("结束第一组" + groups);
             }

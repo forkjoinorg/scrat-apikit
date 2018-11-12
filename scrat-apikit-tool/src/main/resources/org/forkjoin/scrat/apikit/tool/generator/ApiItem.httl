@@ -30,9 +30,9 @@ public class $!{utils.name} {
 <!--#for(method : m.methodInfos)-->
 
    /**
-$!{utils.formatBaseComment(method.comment,"    * ")}
+$!{utils.formatBaseComment(method.comment,"     * ")}
     *
-$!{utils.requestComment(method,"    * ")}
+$!{utils.requestComment(method,"     * ")}
     */
     public $!{utils.resultData(method)} $!{method.name}Data($!{utils.params(method)}) {
         $!{method.resultWrappedType.name}<$!{utils.result(method)}> result = $!{method.name}($!{utils.args(method,false)});

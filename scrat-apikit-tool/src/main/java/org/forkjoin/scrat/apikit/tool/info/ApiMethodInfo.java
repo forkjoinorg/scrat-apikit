@@ -1,12 +1,15 @@
 package org.forkjoin.scrat.apikit.tool.info;
 
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.forkjoin.scrat.apikit.core.ActionType;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author zuoge85 on 15/6/12.
@@ -57,6 +60,33 @@ public class ApiMethodInfo {
         if (formParams.size() > 1) {
             throw new AnalyseException("分析错误！暂时只支持单表单");
         }
+    }
+
+    protected void findTypes(TypeInfo type, List<TypeInfo> list) {
+        list.add(type);
+        if (CollectionUtils.isNotEmpty(type.getTypeArguments())) {
+            type.getTypeArguments().forEach(t -> findTypes(t, list));
+        }
+    }
+
+    public List<TypeInfo> getAllTypes() {
+        return Stream.of(this)
+                .flatMap(m -> {
+                    List<TypeInfo> types = new ArrayList<>();
+                    types.add(m.getResultDataType());
+                    m.getParams().forEach(p -> types.add(p.getTypeInfo()));
+                    return types.stream();
+                })
+                .flatMap(type -> {
+                    List<TypeInfo> types = new ArrayList<>();
+                    findTypes(type, types);
+                    return types.stream();
+                })
+                .filter(typeInfo -> typeInfo.getType().equals(TypeInfo.Type.OTHER))
+                .filter(typeInfo -> !typeInfo.isCollection())
+                .filter(typeInfo -> !typeInfo.isGeneric())
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public String getName() {

@@ -9,6 +9,7 @@ import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.core.Account;
 import org.forkjoin.scrat.apikit.core.ActionType;
 import org.forkjoin.scrat.apikit.core.Ignore;
@@ -28,8 +29,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.util.UriBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -37,10 +36,11 @@ import javax.validation.Valid;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ClassPathAnalyse implements Analyse {
     private static final Logger log = LoggerFactory.getLogger(ClassPathAnalyse.class);
@@ -66,25 +66,33 @@ public class ClassPathAnalyse implements Analyse {
 
             String path = (requestMappingAnnotation != null && ArrayUtils.isNotEmpty(requestMappingAnnotation.path()))
                     ? requestMappingAnnotation.path()[0]
-                    : null;
+                    : "";
 
             String name = cls.getPackage().getName();
+
+
             if (ignoreAnnotation == null &&
                     controllerAnnotation != null &&
                     name.startsWith(context.getRootPackage())) {
 
+
+                JdtClassWappper jdtClassWapper = new JdtClassWappper(context.getPath(), cls);
+
                 ApiInfo apiInfo = new ApiInfo();
                 apiInfo.setName(cls.getSimpleName());
                 apiInfo.setPackageName(name);
+                apiInfo.setComment(jdtClassWapper.getClassComment());
 
                 List<ApiMethodInfo> list = Flux
                         .just(cls.getMethods())
                         .filter(m ->
                                 AnnotationUtils.getAnnotation(m, RequestMapping.class) != null
                                         && AnnotationUtils.getAnnotation(m, Ignore.class) == null)
-                        .map(method -> this.analyseMethod(method, path))
+                        .map(method -> this.analyseMethod(method, path, jdtClassWapper))
+                        .sort((m1, m2) -> StringUtils.compare(m1.getName(), m2.getName()))
                         .collectList()
                         .block();
+
 
                 Objects.requireNonNull(list).forEach(apiInfo::addApiMethod);
 
@@ -92,17 +100,18 @@ public class ClassPathAnalyse implements Analyse {
             }
         } catch (Throwable th) {
             log.info("分析错误!class:{}", cls, th);
-            throw th;
+            throw new RuntimeException(th);
         }
     }
 
-    private ApiMethodInfo analyseMethod(Method method, String parentPath) {
+    private ApiMethodInfo analyseMethod(Method method, String parentPath, JdtClassWappper jdtClassWapper) {
         AnnotationAttributes annotationAttributes = AnnotatedElementUtils.getMergedAnnotationAttributes(method, RequestMapping.class);
         String[] pathArray = annotationAttributes.getStringArray("path");
         RequestMethod[] requestMethods = (RequestMethod[]) annotationAttributes.get("method");
 
         ApiMethodInfo methodInfo = new ApiMethodInfo();
 
+        methodInfo.setComment(jdtClassWapper.getMethodComment(method.getName()));
         methodInfo.setTypes(toActionTypes(requestMethods));
         methodInfo.setName(method.getName());
 
@@ -229,10 +238,12 @@ public class ClassPathAnalyse implements Analyse {
     private String toPath(String parentPath, String[] pathArray) {
         String path = (ArrayUtils.isNotEmpty(pathArray))
                 ? pathArray[0]
-                : null;
+                : "";
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance().pathSegment(parentPath, path);
-        return (parentPath != null) ? uriComponentsBuilder.build().toUriString() : path;
+        return Stream.of(parentPath, path)
+                .flatMap(p -> Stream.of(p.split("/")))
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.joining("/", "", ""));
     }
 
     private ActionType[] toActionTypes(RequestMethod[] requestMapping) {

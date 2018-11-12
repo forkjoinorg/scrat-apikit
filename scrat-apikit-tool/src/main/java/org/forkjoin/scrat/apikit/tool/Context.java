@@ -24,6 +24,7 @@ public class Context {
 
     private String path;
     private String rootPackage;
+    private String[] srcPaths;
     private File rootDir;
 
 
@@ -78,5 +79,13 @@ public class Context {
 
     public void setMessageWrapperMap(Map<String, BuilderWrapper<MessageInfo>> messageWrapperMap) {
         this.messageWrapperMap = messageWrapperMap;
+    }
+
+    public String[] getSrcPaths() {
+        return srcPaths;
+    }
+
+    public void setSrcPaths(String[] srcPaths) {
+        this.srcPaths = srcPaths;
     }
 }

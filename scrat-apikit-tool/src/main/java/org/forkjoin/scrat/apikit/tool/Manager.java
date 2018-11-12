@@ -15,6 +15,7 @@ public class Manager {
     private String rootPackage;
     private String fileCharset = "utf8";
     private String fileSuffix = ".java";
+    private String[] srcPaths;
 
     //    private Analyse analyse;
     private ObjectFactory objectFactory;
@@ -30,6 +31,7 @@ public class Manager {
         context.setPath(path);
         context.setRootPackage(rootPackage);
         context.setRootDir(rootDir);
+        context.setSrcPaths(srcPaths);
 
         analyse(rootDir,rootPackage);
     }
@@ -68,6 +70,14 @@ public class Manager {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String[] getSrcPaths() {
+        return srcPaths;
+    }
+
+    public void setSrcPaths(String[] srcPaths) {
+        this.srcPaths = srcPaths;
     }
 
     @Override

@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 
 /**
  * 类型信息
@@ -229,6 +230,25 @@ public class TypeInfo implements Cloneable {
         isGeneric = generic;
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TypeInfo typeInfo = (TypeInfo) o;
+        return isArray == typeInfo.isArray &&
+                isInside == typeInfo.isInside &&
+                isGeneric == typeInfo.isGeneric &&
+                type == typeInfo.type &&
+                Objects.equals(packageName, typeInfo.packageName) &&
+                Objects.equals(name, typeInfo.name) &&
+                Objects.equals(typeArguments, typeInfo.typeArguments);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, packageName, name, isArray, typeArguments, isInside, isGeneric);
+    }
 
     @Override
     public TypeInfo clone() {

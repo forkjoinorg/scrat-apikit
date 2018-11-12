@@ -1,5 +1,6 @@
 package org.forkjoin.scrat.apikit.tool.wrapper;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author zuoge85 on 15/6/14.
@@ -149,15 +151,11 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
      */
     public String requestComment(ApiMethodInfo method, String start) {
         StringBuilder sb = new StringBuilder(start);
-        sb.append("<div class='http-info'>http 说明：<b>Api Url:</b> <b>")
-                .append(method.getUrl())
-                .append("</b>\n")
-                .append(start)
+        sb.append("<div class='http-info'>http 说明")
                 .append("<ul>\n");
 
-//        sb.append(start).append("<li><b>Method:</b> ")
-//                .append(method.getType().toMethod())
-//                .append("</li>\n");
+        sb.append(start).append("<li><b>Uri:</b>").append(method.getUrl()).append("</li>\n");
+
         Map<String, String> stringStringMap = CommentUtils.commentToMap(method.getComment());
 
         ArrayList<ApiMethodParamInfo> params = method.getParams();
@@ -198,8 +196,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 
         sb.append(start).append("<li><b>Model:</b> ").append("").append(
                 StringEscapeUtils.escapeHtml4(returnType)
-        ).append("")
-                .append("</li>\n");
+        ).append("").append("</li>\n");
 
         if (method.isAccount()) {
             sb.append(start).append("<li>需要登录</li>\n");
@@ -208,40 +205,33 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 
         sb.append(start).append("</ul>\n").append(start).append("</div>\n");
 
-        for (ApiMethodParamInfo attributeInfo : method.getParams()) {
-            if (attributeInfo.isPathVariable() || attributeInfo.isFormParam()) {
-                String name = attributeInfo.getName();
-                String txt = stringStringMap.get(name);
-                if (StringUtils.isNotEmpty(txt)) {
+        Map<String, ApiMethodParamInfo> paramMap = method
+                .getParams()
+                .stream()
+                .collect(Collectors.toMap(ApiMethodParamInfo::getName, r -> r));
+
+        List<List<String>> param = method.getComment().get("param");
+        if(CollectionUtils.isNotEmpty(param)){
+            param.stream().filter(r->r.size()>1).forEach(list->{
+                ApiMethodParamInfo methodParamInfo = paramMap.get(list.get(0));
+                if(methodParamInfo != null){
                     sb.append(start).append("@param ")
-                            .append(name)
+                            .append(list.get(0))
                             .append(" ")
-                            .append(txt.replace("\n", ""))
+                            .append(list.size()>1? String.join(" ", list.subList(1, list.size())) :"")
                             .append("\n");
                 }
-            }
+            });
         }
 
-        if (method.getResultType().getType() != TypeInfo.Type.VOID) {
+        method.getAllTypes().forEach(typeInfo -> {
             sb.append(start).append("@see ").append(
                     StringEscapeUtils.escapeHtml4(
-                            toTypeString(method.getResultType())
+                            toTypeString(typeInfo, false)
                     )
             ).append("\n");
-        }
-
-        for (ApiMethodParamInfo attributeInfo : method.getParams()) {
-            if ((attributeInfo.isPathVariable() || attributeInfo.isFormParam()) && attributeInfo.getTypeInfo().getType() != TypeInfo.Type.VOID) {
-                sb.append(start).append("@see ").append(
-                        StringEscapeUtils.escapeHtml4(toTypeString(attributeInfo.getTypeInfo()))
-                ).append("\n");
-            }
-        }
-
-        if (sb.length() > 0) {
-            sb.substring(0, sb.length() - 1);
-        }
-        return sb.toString();
+        });
+        return StringUtils.stripEnd(sb.toString(), null);
     }
 
     public String params(ApiMethodInfo method) {

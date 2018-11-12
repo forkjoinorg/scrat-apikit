@@ -9,6 +9,7 @@ scrat-apikit 是一个根据spring mvc 注解和源代码生成 httprestfull 调
 mvn scrat-apikit:api
 
 
+
 ```xml
 <build>
     <plugins>

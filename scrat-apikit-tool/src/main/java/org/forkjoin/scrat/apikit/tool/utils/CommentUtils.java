@@ -39,7 +39,7 @@ public class CommentUtils {
     }
 
     /**
-     * 不带tagname，但是tagname 的内容会被包含
+     * 不带tabName 的内容
      */
     public static String formatBaseComment(JavadocInfo comment, String start) {
         if (comment == null) {
@@ -47,15 +47,23 @@ public class CommentUtils {
         }
         StringBuilder sb = new StringBuilder();
 
-        for (String tagName : comment.getTags().keySet()) {
+        List<List<String>> lists = comment.get(null);
+        lists.stream().flatMap(Collection::stream).forEach(c -> {
             sb.append(start);
-            formatCommentItem(comment, start, sb, tagName);
-        }
-        if (sb.length() > 0) {
-            return sb.toString();
+            sb.append(StringUtils.trimToEmpty(c).replace("\n", "").replace("\r", ""));
+            sb.append("\n");
+        });
+        String str = StringUtils.stripEnd(sb.toString(), null);
+        if (str.length() > 0) {
+            return str;
         } else {
             return start;
         }
+    }
+
+    private static void formatCommentItem(JavadocInfo comment, String start, StringBuilder sb, String tagName) {
+        List<List<String>> fragments = comment.getTags().get(tagName);
+        sb.append(fragments.stream().flatMap(Collection::stream).collect(Collectors.joining("\n" + start)));
     }
 
     public static String formatComment(JavadocInfo comment, String start) {
@@ -78,10 +86,6 @@ public class CommentUtils {
         return sb.toString();
     }
 
-    private static void formatCommentItem(JavadocInfo comment, String start, StringBuilder sb, String tagName) {
-        List<List<String>> fragments = comment.getTags().get(tagName);
-        sb.append(fragments.stream().flatMap(Collection::stream).collect(Collectors.joining("\n")));
-    }
 
     public static Map<String, String> commentToMap(JavadocInfo comment) {
         if (comment == null) {

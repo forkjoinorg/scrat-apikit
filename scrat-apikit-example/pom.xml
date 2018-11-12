@@ -66,18 +66,20 @@
                 <artifactId>scrat-apikit-maven-plugin</artifactId>
                 <version>1.0.2-SNAPSHOT</version>
                 <configuration>
-                    <jsPackageName>org.forkjoin.scrat.apikit.example</jsPackageName>
+                    <rootPackage>org.forkjoin.scrat.apikit.example</rootPackage>
                     <tasks>
                         <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask">
-                            <outPath>${project.build.directory}/src/test/java/</outPath>
-                            <jsPackageName>org.forkjoin.scrat.apikit.example.client</jsPackageName>
+                            <outPath>${project.basedir}/src/test/java/</outPath>
+                            <rootPackage>org.forkjoin.scrat.apikit.example.client</rootPackage>
                             <nameMaperSource><![CDATA[(?<name>.*)]]></nameMaperSource>
                             <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>
                         </task>
                         <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask">
-                            <outPath>${project.build.directory}/src/test/js/</outPath>
                             <type>ES6</type>
-                            <version>3</version>
+                            <outPath>${project.basedir}/src/test/js/</outPath>
+                            <jsPackageName>scrat-apikit-example</jsPackageName>
+                            <nameMaperSource><![CDATA[(?<name>.*)Service]]></nameMaperSource>
+                            <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>
                         </task>
                     </tasks>
                 </configuration>

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class ClassPathMessageAnalyse implements MessageAnalyse {
@@ -119,11 +120,13 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
         try {
             Class cls = Class.forName(classInfo.getPackageName() + "." + classInfo.getName());
 
+            Optional<JdtClassWappper> jdtClassWappperOpt = JdtClassWappper.check(cls, context.getPath());
 
             MessageInfo messageInfo = new MessageInfo();
             messageInfo.setPackageName(classInfo.getPackageName());
             messageInfo.setName(classInfo.getName());
             messageInfo.setMessageClass(cls);
+            jdtClassWappperOpt.ifPresent(j-> messageInfo.setComment(j.getClassComment()));
 
             Type genericSuperclass = cls.getGenericSuperclass();
             if (genericSuperclass != null && !genericSuperclass.equals(Object.class)) {
@@ -154,6 +157,9 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                             String name = propertyDescriptor.getName();
                             if (!nameSet.contains(name)) {
                                 PropertyInfo propertyInfo = new PropertyInfo(name, typeInfo);
+
+                                jdtClassWappperOpt
+                                        .ifPresent(j-> propertyInfo.setComment(j.getFieldComment(name)));
                                 messageInfo.add(propertyInfo);
                                 nameSet.add(name);
                             }

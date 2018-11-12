@@ -27,22 +27,22 @@ public class ApikitMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         Map pluginContext = getPluginContext();
         MavenProject project = (MavenProject) pluginContext.get("project");
-        List<String> compileSourceRoots = project
+        String[] compileSourceRoots = project
                 .getCompileSourceRoots()
                 .stream()
                 .filter(str -> !str.contains("generated-sources/annotations"))
-                .collect(Collectors.toList());
+                .toArray(String[]::new);
 
 
-        if (compileSourceRoots.size() > 1) {
+        if (compileSourceRoots.length > 1) {
             throw new RuntimeException("Multiple compileSourceRoot is not supported");
         }
-        String sourcePath = compileSourceRoots.get(0);
+        String sourcePath = compileSourceRoots[0];
 
 
         getLog().info("开始执行全部任务" + tasks + pluginContext);
 
-        MavenUtils.generate(project, new Group(tasks, rootPackage), sourcePath);
+        MavenUtils.generate(project, new Group(tasks, rootPackage), sourcePath, compileSourceRoots);
 //        project.getsour
     }
 }

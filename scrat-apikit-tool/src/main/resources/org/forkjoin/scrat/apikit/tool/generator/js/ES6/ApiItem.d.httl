@@ -14,9 +14,9 @@ declare class $!{utils.name} extends AbstractApi {
 
 ##下面是异步带tag
    /**
-$!{utils.formatBaseComment(method.comment,"    * ")}
+$!{utils.formatBaseComment(method.comment,"     * ")}
     *
-$!{utils.requestComment(method,"    * ")}
+$!{utils.requestComment(method,"     * ")}
     */
     $!{method.name}($!{utils.params(method,true)}):Promise<$!{utils.resultTypeString(method)}>;
 ##循环结束
