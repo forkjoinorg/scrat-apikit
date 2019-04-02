@@ -142,8 +142,7 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
             Set<String> nameSet = new HashSet<>();
             for (Method method : cls.getMethods()) {
                 if (Modifier.isPublic(method.getModifiers())
-                        && method.getParameterTypes().length == 0
-                        && !TYPE_BACK.contains(method.getReturnType())
+                        && !TYPE_BACK.contains(method.getGenericReturnType())
                         && (method.getName().startsWith("get") || method.getName().startsWith("is"))
                 ) {
                     try{

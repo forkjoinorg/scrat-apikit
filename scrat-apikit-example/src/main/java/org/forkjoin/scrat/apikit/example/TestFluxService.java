@@ -6,6 +6,7 @@ import org.forkjoin.scrat.apikit.example.form.ValidForm;
 import org.forkjoin.scrat.apikit.example.model.GenericModel;
 import org.forkjoin.scrat.apikit.example.model.ValidModel;
 import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,13 +22,13 @@ import javax.validation.Valid;
 @RequestMapping("/testFlux/")
 public class TestFluxService {
 
-//    /**
-//     * 获取当前时间
-//     */
-//    @GetMapping("/instant/")
-//    public Mono<Instant> instant() {
-//        return Mono.just(Instant.now());
-//    }
+    /**
+     * 获取当前时间
+     */
+    @GetMapping("/instant/")
+    public Mono<GenericModel<String>> instant() {
+        return null;
+    }
 //
 //    /**
 //     * 测试Flux
@@ -56,37 +57,37 @@ public class TestFluxService {
 //        BeanUtils.copyProperties(form, m);
 //        return Mono.just(m);
 //    }
-
-    /**
-     * 测试PathVariable
-     * 呵呵
-     * 呵呵2
-     *
-     *
-     * @param account 帐号信息
-     * @param form 表单
-     * @param id2  第二PathVariable
-     * @param id   第1PathVariable
-     * @return 返回一个model
-     */
-    @RequestMapping("/valid/{id}-{id2}")
-    public Mono<ValidModel> validById(Account account, @Valid ValidForm form, @PathVariable String id2, @PathVariable String id) {
-        ValidModel m = new ValidModel();
-        BeanUtils.copyProperties(form, m);
-        return Mono.just(m);
-    }
-
-    /**
-     *
-     * @param form
-     * @param id2
-     * @param id
-     * @return
-     */
-    @RequestMapping("/testGenericModel/{id}-{id2}")
-    public Mono<GenericModel<ValidModel>> testGenericModel(@Valid ValidForm form, @PathVariable String id2, @PathVariable String id) {
-        return Mono.empty();
-    }
+//
+//    /**
+//     * 测试PathVariable
+//     * 呵呵
+//     * 呵呵2
+//     *
+//     *
+//     * @param account 帐号信息
+//     * @param form 表单
+//     * @param id2  第二PathVariable
+//     * @param id   第1PathVariable
+//     * @return 返回一个model
+//     */
+//    @RequestMapping("/valid/{id}-{id2}")
+//    public Mono<ValidModel> validById(Account account, @Valid ValidForm form, @PathVariable String id2, @PathVariable String id) {
+//        ValidModel m = new ValidModel();
+//        BeanUtils.copyProperties(form, m);
+//        return Mono.just(m);
+//    }
+//
+//    /**
+//     *
+//     * @param form
+//     * @param id2
+//     * @param id
+//     * @return
+//     */
+//    @RequestMapping("/testGenericModel/{id}-{id2}")
+//    public Mono<GenericModel<ValidModel>> testGenericModel(@Valid ValidForm form, @PathVariable String id2, @PathVariable String id) {
+//        return Mono.empty();
+//    }
 
 //    @RequestMapping("/object")
 //    public Mono<ObjectModel> object(@Valid ObjectForm form) {

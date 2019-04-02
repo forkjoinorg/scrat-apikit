@@ -136,18 +136,20 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
                 .stream()
                 .collect(Collectors.toMap(ApiMethodParamInfo::getName, r -> r));
 
-        List<List<String>> param = method.getComment().get("@param");
-        if(CollectionUtils.isNotEmpty(param)){
-            param.stream().filter(r->r.size()>1).forEach(list->{
-                ApiMethodParamInfo methodParamInfo = paramMap.get(list.get(0));
-                if(methodParamInfo != null){
-                    sb.append(start).append("@param ")
-                            .append(list.get(0))
-                            .append(" ")
-                            .append(list.size()>1? String.join(" ", list.subList(1, list.size())) :"")
-                            .append("\n");
-                }
-            });
+        if(method.getComment() != null){
+            List<List<String>> param = method.getComment().get("@param");
+            if(CollectionUtils.isNotEmpty(param)){
+                param.stream().filter(r->r.size()>1).forEach(list->{
+                    ApiMethodParamInfo methodParamInfo = paramMap.get(list.get(0));
+                    if(methodParamInfo != null){
+                        sb.append(start).append("@param ")
+                                .append(list.get(0))
+                                .append(" ")
+                                .append(list.size()>1? String.join(" ", list.subList(1, list.size())) :"")
+                                .append("\n");
+                    }
+                });
+            }
         }
 
         method.getAllTypes().forEach(typeInfo -> {
