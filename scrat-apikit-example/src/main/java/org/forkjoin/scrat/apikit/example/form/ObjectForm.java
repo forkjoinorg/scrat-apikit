@@ -1,10 +1,12 @@
 package org.forkjoin.scrat.apikit.example.form;
 
 import org.forkjoin.TestForm;
+import org.forkjoin.scrat.apikit.example.type.StatusType;
 
 public class ObjectForm {
     private TestArrayForm testArray;
     private TestForm test;
+    private StatusType statusType;
     private TestWrapperForm testWrapper;
 
 

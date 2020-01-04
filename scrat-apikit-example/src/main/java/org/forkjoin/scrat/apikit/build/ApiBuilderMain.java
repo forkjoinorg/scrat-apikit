@@ -36,12 +36,12 @@ public class ApiBuilderMain implements CommandLineRunner {
     public void run(String... args) throws Exception {
         final String version = "v1";
 
-        File root = new File("scrat-apikit-example");
+        File root = new File("client-apikit-example");
         if (!root.exists()) {
             root = new File(".");
         }
 
-        root = new File("scrat-apikit/scrat-apikit-example");
+        root = new File("client-apikit/client-apikit-example");
         if (!root.exists()) {
             root = new File(".");
         }
@@ -61,7 +61,7 @@ public class ApiBuilderMain implements CommandLineRunner {
 
         Manager manager = new Manager();
         manager.setPath(dir.getAbsolutePath());
-        manager.setRootPackage("org.forkjoin.scrat.apikit.example");
+        manager.setRootPackage("org.forkjoin.client.apikit.example");
         manager.setObjectFactory(objectFactory);
 
         //开始处理
@@ -73,7 +73,7 @@ public class ApiBuilderMain implements CommandLineRunner {
             generator.setApiNameMaper(new PatternNameMaper(
                     "(?<name>.*)Service", "${name}Api"
             ));
-            generator.setRootPackage("org.forkjoin.scrat.apikit.example.client");
+            generator.setRootPackage("org.forkjoin.client.apikit.example.client");
             manager.generate(generator);
         }
         {

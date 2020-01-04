@@ -140,7 +140,7 @@ public class ApiDocGenerator extends AbstractGenerator {
 //        list.add(new ApiDocApi.Field(groupName, "String", "msg", true, "错误消息,表示错误的详细信息，支持国际化", null));
 //        list.add(new ApiDocApi.Field(groupName, "Map", "msgMap", true, "详细错误消息,key:表示错误字段,value:表示错误信息", null));
 //
-//        if (resultWrappedType.getFullName().equals("org.forkjoin.scrat.apikit.tool.core.PageResult")) {
+//        if (resultWrappedType.getFullName().equals("org.forkjoin.client.apikit.tool.core.PageResult")) {
 //            list.add(new ApiDocApi.Field(groupName, "int", "count", true, "记录总数", "0"));
 //            list.add(new ApiDocApi.Field(groupName, "int", "page", true, "当前页,1开始", "0"));
 //            list.add(new ApiDocApi.Field(groupName, "int", "pageSize", true, "一页大小", "0"));
@@ -148,7 +148,7 @@ public class ApiDocGenerator extends AbstractGenerator {
 //
 //        TypeInfo resultDataType = methodInfo.getResultDataType();
 //        TypeInfo trueResultDataType = getTrueType(resultDataType);
-//        if (!resultDataType.getType().equals(TypeInfo.Type.VOID)) {
+//        if (!resultDataType.getType().equals(TypeInfo.type.VOID)) {
 //            if (!trueResultDataType.getType().isBaseType()) {
 //                ApiDocApi.Field dataField = new ApiDocApi.Field(
 //                        groupName, getTypeName(resultDataType), "data", false, "", null

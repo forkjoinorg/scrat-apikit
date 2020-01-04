@@ -2,12 +2,13 @@ package org.forkjoin.scrat.apikit.example.model;
 
 import org.forkjoin.BaseObj;
 import org.forkjoin.TestModel;
+import org.forkjoin.scrat.apikit.example.type.StatusType;
 
 public class ObjectModel extends BaseObj<Integer>{
     private TestArrayModel testArray;
     private TestModel test;
     private TestWrapperModel testWrapper;
-
+    private StatusType statusType;
 
     public TestArrayModel getTestArray() {
         return testArray;

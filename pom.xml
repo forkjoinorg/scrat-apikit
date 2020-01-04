@@ -7,7 +7,7 @@
     <groupId>org.forkjoin.scrat.apikit</groupId>
     <artifactId>scrat-apikit</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <modules>
         <module>scrat-apikit-core</module>
         <module>scrat-apikit-tool</module>

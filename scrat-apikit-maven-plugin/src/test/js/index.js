@@ -1,6 +1,6 @@
 
-import TestFluxService from './org/forkjoin/scrat/apikit/example/TestFluxService';
-import TestService from './org/forkjoin/scrat/apikit/example/TestService';
+import TestFluxService from './org/forkjoin/client/apikit/example/TestFluxService';
+import TestService from './org/forkjoin/client/apikit/example/TestService';
 
 
 export {

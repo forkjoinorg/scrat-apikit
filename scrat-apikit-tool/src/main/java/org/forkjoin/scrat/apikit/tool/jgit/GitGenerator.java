@@ -310,7 +310,7 @@ public class GitGenerator implements Generator {
 //            JavaClientGenerator generator = new JavaClientGenerator();
 //            generator.setOutPath(new File(temp.toFile(), srcPath).getAbsolutePath());
 //            generator.setVersion(version);
-//            generator.setRootPackage("org.forkjoin.scrat.apikit.example.client");
+//            generator.setRootPackage("org.forkjoin.client.apikit.example.client");
 //            generator.generate(context);
 //
 //            DirCache dirCache = git.add().addFilepattern(".").call();
