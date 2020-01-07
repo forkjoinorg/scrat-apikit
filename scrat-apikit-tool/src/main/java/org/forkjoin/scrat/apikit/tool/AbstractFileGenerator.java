@@ -8,9 +8,9 @@ public abstract class AbstractFileGenerator implements Generator {
     protected String rootPackage;
     protected String version;
 
-    public String getOutPath() {
-        return outPath;
-    }
+//    public String getOutPath() {
+//        return outPath;
+//    }
 
     public void setOutPath(String outPath) {
         this.outPath = outPath;

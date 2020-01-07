@@ -170,10 +170,10 @@ public class GitGenerator implements Generator {
         return version;
     }
 
-    @Override
-    public String getOutPath() {
-        return null;
-    }
+//    @Override
+//    public String getOutPath() {
+//        return null;
+//    }
 
     @Override
     public void setVersion(String version) {

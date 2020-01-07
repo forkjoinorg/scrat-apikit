@@ -7,28 +7,28 @@ import com.thoughtworks.paranamer.Paranamer;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.core.Account;
 import org.forkjoin.scrat.apikit.core.ActionType;
 import org.forkjoin.scrat.apikit.core.Ignore;
-import org.forkjoin.scrat.apikit.tool.Analyse;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
+import org.forkjoin.scrat.apikit.tool.ApiAnalyse;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
 import org.forkjoin.scrat.apikit.tool.info.ApiMethodInfo;
 import org.forkjoin.scrat.apikit.tool.info.ApiMethodParamInfo;
 import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.type.ApiMethodParamType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -42,8 +42,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ClassPathAnalyse implements Analyse {
-    private static final Logger log = LoggerFactory.getLogger(ClassPathAnalyse.class);
+public class ClassPathApiAnalyse implements ApiAnalyse {
+    private static final Logger log = LoggerFactory.getLogger(ClassPathApiAnalyse.class);
 
     private Context context;
 
@@ -52,7 +52,7 @@ public class ClassPathAnalyse implements Analyse {
         this.context = context;
 
         FastClasspathScanner fastClasspathScanner = new FastClasspathScanner(context.getRootPackage());
-        fastClasspathScanner.addClassLoader(ClassPathAnalyse.class.getClassLoader());
+        fastClasspathScanner.addClassLoader(ClassPathApiAnalyse.class.getClassLoader());
         fastClasspathScanner.matchAllClasses(this::analyse);
         ScanResult scanResult = fastClasspathScanner.scan();
     }
@@ -64,9 +64,12 @@ public class ClassPathAnalyse implements Analyse {
             RequestMapping requestMappingAnnotation = AnnotationUtils.getAnnotation(cls, RequestMapping.class);
 
 
-            String path = (requestMappingAnnotation != null && ArrayUtils.isNotEmpty(requestMappingAnnotation.path()))
-                    ? requestMappingAnnotation.path()[0]
-                    : "";
+            String path;
+            if (requestMappingAnnotation != null && ArrayUtils.isNotEmpty(requestMappingAnnotation.path())) {
+                path = requestMappingAnnotation.path()[0];
+            } else {
+                path = "";
+            }
 
             String name = cls.getPackage().getName();
 
@@ -150,26 +153,34 @@ public class ClassPathAnalyse implements Analyse {
                 throw new AnalyseException("请修改编译选项，保留方法参数名称");
             }
 
+            Ignore annotation = AnnotationUtils.getAnnotation(parameter, Ignore.class);
+            if (annotation != null) {
+                continue;
+            }
+
 
             Type pType = parameter.getParameterizedType();
             ApiMethodParamInfo fieldInfo = new ApiMethodParamInfo(paramName, TypeInfo.form(pType));
 
-            AnnotationAttributes pathVarAnnotationAttributes = AnnotatedElementUtils.getMergedAnnotationAttributes(parameter, PathVariable.class);
-            if (MapUtils.isNotEmpty(pathVarAnnotationAttributes)) {
-                fieldInfo.setPathVariable(true);
+            ApiMethodParamType apiMethodParamType;
+            if (analyse(fieldInfo, AnnotationUtils.getAnnotation(parameter, PathVariable.class))) {
+                apiMethodParamType = ApiMethodParamType.PATH_VARIABLE;
+            } else if (analyse(fieldInfo, AnnotationUtils.getAnnotation(parameter, Valid.class))) {
+                apiMethodParamType = ApiMethodParamType.FORM_PARAM;
+            } else if (analyse(fieldInfo, AnnotationUtils.getAnnotation(parameter, RequestHeader.class))) {
+                apiMethodParamType = ApiMethodParamType.REQUEST_HEADER;
+            } else if (analyse(fieldInfo, AnnotationUtils.getAnnotation(parameter, RequestParam.class))) {
+                apiMethodParamType = ApiMethodParamType.REQUEST_PARAM;
+            } else {
+                apiMethodParamType = analyse(fieldInfo, AnnotationUtils.getAnnotation(parameter, RequestPart.class));
             }
 
-            Valid validAnnotation = AnnotationUtils.getAnnotation(parameter, Valid.class);
-            if (validAnnotation != null) {
-                fieldInfo.setFormParam(true);
-            }
-            if (!fieldInfo.isFormParam() && !fieldInfo.isPathVariable()) {
+            if (apiMethodParamType == null) {
                 continue;
             }
 
-            if (fieldInfo.isFormParam() && fieldInfo.isPathVariable()) {
-                throw new AnalyseException("参数不能同时是路径参数和form" + fieldInfo);
-            }
+            fieldInfo.setApiMethodParamType(apiMethodParamType);
+
             if (fieldInfo.isFormParam()) {
                 if (fieldInfo.getTypeInfo().isArray()) {
                     throw new AnalyseException("表单对象不支持数组!" + fieldInfo);
@@ -180,6 +191,70 @@ public class ClassPathAnalyse implements Analyse {
             }
             apiMethodInfo.addParam(fieldInfo);
         }
+    }
+
+    private boolean analyse(ApiMethodParamInfo fieldInfo, Valid annotation) {
+        if (annotation != null) {
+            return true;
+        }
+        return false;
+    }
+
+
+    private boolean analyse(ApiMethodParamInfo fieldInfo, PathVariable annotation) {
+        if (annotation != null) {
+            fieldInfo.setRequired(annotation.required());
+            fieldInfo.setAnnotationName(StringUtils.isNotEmpty(annotation.name()) ? annotation.name() : annotation.value());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean analyse(ApiMethodParamInfo fieldInfo, RequestParam annotation) {
+        if (annotation != null) {
+            fieldInfo.setRequired(annotation.required());
+            fieldInfo.setAnnotationName(StringUtils.isNotEmpty(annotation.name()) ? annotation.name() : annotation.value());
+            fieldInfo.setDefaultValue(annotation.defaultValue());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean analyse(ApiMethodParamInfo fieldInfo, RequestHeader annotation) {
+        if (annotation != null) {
+            fieldInfo.setRequired(annotation.required());
+            fieldInfo.setAnnotationName(StringUtils.isNotEmpty(annotation.name()) ? annotation.name() : annotation.value());
+            fieldInfo.setDefaultValue(annotation.defaultValue());
+            return true;
+        }
+        return false;
+    }
+
+    private ApiMethodParamType analyse(ApiMethodParamInfo fieldInfo, RequestPart annotation) {
+        if (annotation != null) {
+            ApiMethodParamType apiMethodParamType;
+            fieldInfo.setRequired(annotation.required());
+            fieldInfo.setAnnotationName(StringUtils.isNotEmpty(annotation.name()) ? annotation.name() : annotation.value());
+
+            TypeInfo filePartTypeInfo = fieldInfo.getTypeInfo().findByMyAndTypeArguments(
+                    FilePart.class.getPackage().getName(),
+                    FilePart.class.getSimpleName()
+            );
+
+            TypeInfo formFieldPartTypeInfo = fieldInfo.getTypeInfo().findByMyAndTypeArguments(
+                    FormFieldPart.class.getPackage().getName(),
+                    FormFieldPart.class.getSimpleName()
+            );
+
+            if (filePartTypeInfo != null) {
+                return ApiMethodParamType.REQUEST_PART_FILE;
+            } else if (formFieldPartTypeInfo != null) {
+                return ApiMethodParamType.REQUEST_PART_FIELD;
+            } else {
+                throw new AnalyseException("不支持的Part" + fieldInfo);
+            }
+        }
+        return null;
     }
 
 

@@ -80,6 +80,10 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
         }
     }
 
+    public boolean isHasSuper(){
+        return moduleInfo.getSuperType() != null;
+    }
+
     public String typeParameters() {
         List<String> typeParameters = moduleInfo.getTypeParameters();
         if (CollectionUtils.isNotEmpty(typeParameters)) {
@@ -144,7 +148,9 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
 
         for (PropertyInfo attr : moduleInfo.getProperties()) {
             sb.append(attr.getName());
-
+            if(attr.isSuperProperty()){
+                continue;
+            }
             if (attr.getTypeInfo().isArray()) {
 
                 if (attr.getTypeInfo().isBytes()) {
@@ -178,6 +184,9 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
     public String getConstructorString() {
         StringBuilder sb = new StringBuilder();
         for (PropertyInfo attr : moduleInfo.getProperties()) {
+            if(attr.isSuperProperty()){
+                continue;
+            }
             if (sb.length() != 0) {
                 sb.append(", ");
             }
@@ -196,6 +205,9 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
         }
         StringBuilder sb = new StringBuilder();
         for (PropertyInfo attr : moduleInfo.getProperties()) {
+            if(attr.isSuperProperty()){
+                continue;
+            }
             sb.append('\n');
             TypeInfo sourceTypeInfo = attr.getTypeInfo();
             TypeInfo typeInfo = sourceTypeInfo;

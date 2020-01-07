@@ -5,9 +5,15 @@ package org.forkjoin.scrat.apikit.tool.info;
  */
 public class PropertyInfo extends FieldInfo {
     private JavadocInfo comment;
+    private boolean isSuperProperty;
 
-    public PropertyInfo(String name, TypeInfo typeInfo) {
+    public PropertyInfo(String name, TypeInfo typeInfo, boolean isSuperProperty) {
         super(name, typeInfo);
+        this.isSuperProperty = isSuperProperty;
+    }
+
+    public boolean isSuperProperty() {
+        return isSuperProperty;
     }
 
     public JavadocInfo getComment() {

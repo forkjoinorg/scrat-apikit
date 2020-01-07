@@ -1,10 +1,6 @@
 package org.forkjoin.scrat.apikit.tool;
 
-import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
-import org.forkjoin.scrat.apikit.tool.info.ClassInfo;
-import org.forkjoin.scrat.apikit.tool.info.MessageInfo;
-import org.forkjoin.scrat.apikit.tool.info.PackageInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.tool.info.*;
 import org.forkjoin.scrat.apikit.tool.wrapper.BuilderWrapper;
 
 import java.io.File;
@@ -20,7 +16,12 @@ public class Context {
     protected PackageInfo<ApiInfo> apis = new PackageInfo<>();
     private TreeMap<ClassInfo, MessageInfo> messageMap = new TreeMap<>(Comparator.comparing(ClassInfo::getFullName));
     private TreeMap<String, MessageInfo> fullNameMessageMap = new TreeMap<>(Comparator.comparing(r -> r));
+
+    private TreeMap<ClassInfo, EnumInfo> enumMap = new TreeMap<>(Comparator.comparing(ClassInfo::getFullName));
+    private TreeMap<String, EnumInfo> fullNameEnumMap = new TreeMap<>(Comparator.comparing(r -> r));
+
     private Map<String, BuilderWrapper<MessageInfo>> messageWrapperMap;
+    private Map<String, BuilderWrapper<EnumInfo>> enumWrapperMap;
 
     private String path;
     private String rootPackage;
@@ -35,6 +36,11 @@ public class Context {
     public void addMessage(ClassInfo key, MessageInfo messageInfo) {
         messageMap.put(key, messageInfo);
         fullNameMessageMap.put(key.getFullName(), messageInfo);
+    }
+
+    public void addMessage(ClassInfo key, EnumInfo enumInfo) {
+        enumMap.put(key, enumInfo);
+        fullNameEnumMap.put(key.getFullName(), enumInfo);
     }
 
     public String getPath() {

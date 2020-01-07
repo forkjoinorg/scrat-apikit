@@ -12,7 +12,7 @@ import java.io.File;
 /**
  *
  */
-public abstract class JavaGenerator extends HttlGenerator {
+public abstract class AbstractJavaGeneratorAbstract extends AbstractHttlGenerator {
     protected File getFileName(BuilderWrapper utils) {
         return Utils.packToPath(outPath, utils.getPack(), utils.getName(), ".java");
     }

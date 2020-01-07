@@ -13,8 +13,10 @@ import java.util.Map;
 /**
  *
  */
-public abstract class HttlGenerator extends AbstractGenerator {
-    private static final Logger log = LoggerFactory.getLogger(HttlGenerator.class);
+public abstract class AbstractHttlGenerator extends AbstractGenerator {
+    private static final Logger log = LoggerFactory.getLogger(AbstractHttlGenerator.class);
+
+
 
     protected void executeModule(
             BuilderWrapper utils, String templPath, File file

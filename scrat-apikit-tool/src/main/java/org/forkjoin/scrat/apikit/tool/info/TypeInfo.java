@@ -1,6 +1,7 @@
 package org.forkjoin.scrat.apikit.tool.info;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 import org.slf4j.Logger;
@@ -11,12 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 类型信息
@@ -39,11 +35,21 @@ public class TypeInfo implements Cloneable {
      * 是否是泛型的变量类型
      */
     private boolean isGeneric = false;
+    private boolean isEnum = false;
 
     private TypeInfo() {
     }
 
-    public TypeInfo(Type type, String packageName, String name, boolean isArray, List<TypeInfo> typeArguments, boolean isInside, boolean isGeneric) {
+    public TypeInfo(
+            Type type,
+            String packageName,
+            String name,
+            boolean isArray,
+            List<TypeInfo> typeArguments,
+            boolean isInside,
+            boolean isGeneric,
+            boolean isEnum
+    ) {
         this.type = type;
         this.packageName = packageName;
         this.name = name;
@@ -51,6 +57,7 @@ public class TypeInfo implements Cloneable {
         this.typeArguments = typeArguments;
         this.isInside = isInside;
         this.isGeneric = isGeneric;
+        this.isEnum = isEnum;
     }
 
     public void addArguments(TypeInfo typeInfo) {
@@ -117,7 +124,7 @@ public class TypeInfo implements Cloneable {
                 Type t = Type.form(cls);
                 if (!t.isBaseType()) {
                     return new TypeInfo(
-                            t, cls.getPackage().getName(), cls.getSimpleName(), false, new ArrayList<>(), false, false
+                            t, cls.getPackage().getName(), cls.getSimpleName(), false, new ArrayList<>(), false, false, cls.isEnum()
                     );
                 } else {
                     return TypeInfo.formBaseType(cls.getName(), false);
@@ -287,6 +294,29 @@ public class TypeInfo implements Cloneable {
         }
     }
 
+    public boolean isEnum() {
+        return isEnum;
+    }
+
+    public TypeInfo findByMyAndTypeArguments(String packageName, String name) {
+        if (this.packageName.equals(packageName) && this.name.equals(name)) {
+            return this;
+        }
+        return findByMyAndTypeArguments(packageName, name, this.getTypeArguments());
+    }
+
+    public TypeInfo findByMyAndTypeArguments(String packageName, String name, List<TypeInfo> typeArguments) {
+        if (CollectionUtils.isNotEmpty(typeArguments)) {
+            for (TypeInfo t : typeArguments) {
+                if (t.packageName.equals(packageName) && t.name.equals(name)) {
+                    return t;
+                } else {
+                    return findByMyAndTypeArguments(packageName, name, t.getTypeArguments());
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * 0. void *(只在api返回值)*

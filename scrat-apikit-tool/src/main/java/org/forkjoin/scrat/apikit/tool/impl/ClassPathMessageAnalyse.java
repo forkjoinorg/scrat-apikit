@@ -2,32 +2,23 @@ package org.forkjoin.scrat.apikit.tool.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
+import org.forkjoin.scrat.apikit.core.Ignore;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.MessageAnalyse;
-import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
-import org.forkjoin.scrat.apikit.tool.info.ClassInfo;
-import org.forkjoin.scrat.apikit.tool.info.FieldInfo;
-import org.forkjoin.scrat.apikit.tool.info.MessageInfo;
-import org.forkjoin.scrat.apikit.tool.info.PropertyInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.tool.info.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.annotation.AnnotationUtils;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ClassPathMessageAnalyse implements MessageAnalyse {
     private static final Logger log = LoggerFactory.getLogger(ClassPathMessageAnalyse.class);
@@ -37,8 +28,11 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
     private ArrayDeque<ClassInfo> analysDeque = new ArrayDeque<>();
     private List<MessageInfo> messageInfos = new ArrayList<>();
     private HashMap<ClassInfo, MessageInfo> messageMap = new HashMap<>();
+
+    private Set<TypeInfo> enumTypes = new LinkedHashSet<>();
+
     private Set<Class> TYPE_BACK = ImmutableSet.of(
-            Class.class, Object.class, void.class, Void.class
+            Class.class, Object.class, void.class, Void.class, Mono.class, Flux.class
     );
 
     @Override
@@ -53,15 +47,8 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                     m.getParams().forEach(p -> types.add(p.getTypeInfo()));
                     return types;
                 })
-                .flatMapIterable(type -> {
-                    List<TypeInfo> types = new ArrayList<>();
-                    findTypes(type, types);
-                    return types;
-                })
-                .filter(typeInfo -> typeInfo.getType().equals(TypeInfo.Type.OTHER))
-                .filter(typeInfo -> !typeInfo.isCollection())
-                .filter(typeInfo -> !typeInfo.isGeneric())
-                .filter(typeInfo -> !typeInfo.isObject())
+                .flatMapIterable(this::findAllByTypeArguments)
+                .filter(this::filterTypes)
                 .map(typeInfo -> new ClassInfo(typeInfo.getPackageName(), typeInfo.getName()))
                 .distinct()
                 .collectList()
@@ -77,6 +64,22 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
         });
     }
 
+
+    private boolean filterTypes(TypeInfo typeInfo) {
+        if (typeInfo.isEnum()) {
+            enumTypes.add(typeInfo);
+        }
+        return typeInfo.getType().equals(TypeInfo.Type.OTHER)
+                && (!typeInfo.isCollection())
+                && (!typeInfo.isGeneric())
+                && (!typeInfo.isObject())
+                && (!typeInfo.isEnum());
+    }
+
+    public Set<TypeInfo> getEnumTypes() {
+        return enumTypes;
+    }
+
     public void handler() {
         ClassInfo classInfo;
         while ((classInfo = analysDeque.poll()) != null) {
@@ -86,18 +89,8 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
             List<ClassInfo> offspringList = Flux
                     .fromIterable(messageInfo.getProperties())
                     .map(FieldInfo::getTypeInfo)
-                    .flatMapIterable(type -> {
-                        List<TypeInfo> types = new ArrayList<>();
-                        findTypes(type, types);
-                        if (messageInfo.getSuperType() != null) {
-                            findTypes(messageInfo.getSuperType(), types);
-                        }
-                        return types;
-                    })
-                    .filter(typeInfo -> typeInfo.getType().equals(TypeInfo.Type.OTHER))
-                    .filter(typeInfo -> !typeInfo.isCollection())
-                    .filter(typeInfo -> !typeInfo.isGeneric())
-                    .filter(typeInfo -> !typeInfo.isObject())
+                    .flatMapIterable(this::findAllByTypeArguments)
+                    .filter(this::filterTypes)
                     .map(typeInfo -> new ClassInfo(typeInfo.getPackageName(), typeInfo.getName()))
                     .distinct()
                     .collectList()
@@ -126,7 +119,7 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
             messageInfo.setPackageName(classInfo.getPackageName());
             messageInfo.setName(classInfo.getName());
             messageInfo.setMessageClass(cls);
-            jdtClassWappperOpt.ifPresent(j-> messageInfo.setComment(j.getClassComment()));
+            jdtClassWappperOpt.ifPresent(j -> messageInfo.setComment(j.getClassComment()));
 
             Type genericSuperclass = cls.getGenericSuperclass();
             if (genericSuperclass != null && !genericSuperclass.equals(Object.class)) {
@@ -139,32 +132,61 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                 messageInfo.addTypeParameter(typeParameter.getName());
             }
 
+            Map<String, Field> fieldMap = Stream.of(cls.getFields()).collect(Collectors.toMap(Field::getName, t -> t));
+
             Set<String> nameSet = new HashSet<>();
             for (Method method : cls.getMethods()) {
                 if (Modifier.isPublic(method.getModifiers())
-                        && !TYPE_BACK.contains(method.getGenericReturnType())
+                        && !isBackType(method)
                         && (method.getName().startsWith("get") || method.getName().startsWith("is"))
                 ) {
-                    try{
+                    try {
                         TypeInfo typeInfo = TypeInfo.form(method.getGenericReturnType());
                         PropertyDescriptor propertyDescriptor = BeanUtils.findPropertyForMethod(method);
+
                         if (propertyDescriptor != null) {
+                            String name = propertyDescriptor.getName();
+
+                            Field field = fieldMap.get(name);
+
+
+                            Ignore annotation = AnnotationUtils.getAnnotation(method, Ignore.class);
+                            if (annotation != null) {
+                                continue;
+                            }
+                            if (field != null) {
+                                annotation = AnnotationUtils.getAnnotation(field, Ignore.class);
+                                if (annotation != null) {
+                                    continue;
+                                }
+                            }
+
                             if (typeInfo == null) {
                                 throw new AnalyseException("类型解析失败!错误的字段:" + method.getGenericReturnType());
                             }
+                            Class<?> declaringClass = propertyDescriptor.getReadMethod().getDeclaringClass();
 
-                            String name = propertyDescriptor.getName();
                             if (!nameSet.contains(name)) {
-                                PropertyInfo propertyInfo = new PropertyInfo(name, typeInfo);
+                                PropertyInfo propertyInfo = new PropertyInfo(name, typeInfo, !cls.equals(declaringClass));
 
-                                jdtClassWappperOpt
-                                        .ifPresent(j-> propertyInfo.setComment(j.getFieldComment(name)));
+                                jdtClassWappperOpt.ifPresent(j -> {
+                                    JavadocInfo fieldComment = j.getFieldComment(name);
+                                    if (fieldComment == null) {
+                                        fieldComment = j.getMethodComment(method.getName());
+                                        if (fieldComment == null) {
+                                            fieldComment = j.getMethodComment(propertyDescriptor.getWriteMethod().getName());
+                                        }
+                                    }
+                                    if (fieldComment != null) {
+                                        propertyInfo.setComment(fieldComment);
+                                    }
+                                });
                                 messageInfo.add(propertyInfo);
                                 nameSet.add(name);
                             }
                         }
-                    }catch (AnalyseException ex){
-                        log.info("错误,忽略属性继续:{}",method,ex);
+                    } catch (AnalyseException ex) {
+                        log.info("错误,忽略属性继续:{}", method, ex);
                     }
                 }
             }
@@ -177,6 +199,20 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
         }
     }
 
+    private boolean isBackType(Method method) {
+        Type genericReturnType = method.getGenericReturnType();
+        if (genericReturnType instanceof ParameterizedType) {
+            return TYPE_BACK.contains(genericReturnType) || TYPE_BACK.contains(((ParameterizedType) genericReturnType).getRawType());
+        }
+        return TYPE_BACK.contains(genericReturnType);
+    }
+
+
+    private Iterable<? extends TypeInfo> findAllByTypeArguments(TypeInfo type) {
+        List<TypeInfo> types = new ArrayList<>();
+        findTypes(type, types);
+        return types;
+    }
 
     public void findTypes(TypeInfo type, List<TypeInfo> list) {
         list.add(type);

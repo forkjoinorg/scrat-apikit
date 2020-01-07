@@ -1,9 +1,11 @@
 package org.forkjoin.scrat.apikit.tool;
 
+import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * @author zuoge85 on 15/11/8.
@@ -33,15 +35,21 @@ public class Manager {
         context.setRootDir(rootDir);
         context.setSrcPaths(srcPaths);
 
-        analyse(rootDir,rootPackage);
+        analyseNext();
     }
 
-    private void analyse(File rootDir,String rootPackage) {
-        Analyse analyse = objectFactory.createAnalyse();
-        analyse.analyse(context);
+    private void analyseNext() {
+        ApiAnalyse apiAnalyse = objectFactory.createApiAnalyse();
+        apiAnalyse.analyse(context);
 
         MessageAnalyse messageAnalyse = objectFactory.createMessageAnalyse();
         messageAnalyse.analyse(context);
+
+        Set<TypeInfo> enumTypes = messageAnalyse.getEnumTypes();
+
+
+        EnumAnalyse enumAnalyse = objectFactory.createEnumAnalyse();
+        enumAnalyse.analyse(context, enumTypes);
     }
 
     public void generate(Generator generator) throws Exception {

@@ -7,7 +7,7 @@ package org.forkjoin.scrat.apikit.tool;
  */
 public interface Generator {
     void generate(Context context) throws Exception;
-    String getOutPath();
+//    String getOutPath();
 
     void setVersion(String version);
 }

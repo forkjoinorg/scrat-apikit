@@ -17,7 +17,7 @@ $!{utils.comment(" * ")}
  */
 public class $!{utils.distName}$!{utils.typeParameters} $!{utils.superInfo}{
 <!--#for(attr : m.properties)-->
-
+<!--    #if(!attr.isSuperProperty)-->
 <!--		#if(attr.comment)-->
 	/**
 $!{utils.formatComment(attr.comment,"	 * ")}
@@ -25,6 +25,7 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 <!--		#end-->
 <!--$!{utils.formatAnnotations(attr.annotations,"	")}-->
 	private $!{utils.toJavaTypeString(attr.typeInfo, false, true)} $!{attr.name};
+<!--    #end-->
 <!--#end-->
 
 	public $!{m.name}(){
@@ -32,9 +33,11 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 
 <!--#if(!m.properties.empty())-->
 	public $!{m.name}($!{utils.getConstructorString()}){
-<!--		#for(attr : m.properties)-->
+<!--    #for(attr : m.properties)-->
+<!--        #if(!attr.isSuperProperty)-->
 		this.$!{attr.name} = $!{attr.name};
 <!--		#end-->
+<!--    #end-->
 	}
 <!--#end-->
 
@@ -42,6 +45,7 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 
 <!--#for(attr : m.properties)-->
 
+<!--    #if(!attr.isSuperProperty)-->
 <!--		#if(attr.comment)-->
 	/**
 $!{utils.formatComment(attr.comment,"	 * ")}
@@ -59,9 +63,11 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 	public void $!{utils.toJavaSetName(attr)}($!{utils.toJavaTypeString(attr.typeInfo,false, true)} $!{attr.name}) {
 		this.$!{attr.name} = $!{attr.name};
 	}
+<!--    #end-->
 <!--#end-->
 ##List的add函数
 <!--#for(attr : m.properties)-->
+<!--    #if(!attr.isSuperProperty)-->
 <!--		#if(attr.typeInfo.isArray&&(!attr.typeInfo.isBytes))-->
 
 <!--		#if(attr.comment)-->
@@ -76,9 +82,13 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 		this.$!{attr.name}.add($!{attr.name});
 	}
 <!--		#end-->
+<!--    #end-->
 <!--#end-->
 
 	public List<Entry<String, Object>> encode(String $parent, List<Entry<String, Object>> $list) {
+<!--#if(utils.isHasSuper)-->
+	    super.encode($parent, $list);
+<!--#end-->
 		$!{utils.getEncodeCode("        ", "$parent")}
     }
 

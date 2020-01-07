@@ -22,14 +22,14 @@ import java.util.stream.Collectors;
 /**
  * 这个版本还不能 ,解开泛型或者支持泛型
  */
-public class JavaScriptGenerator extends HttlGenerator {
+public class JavaScriptGeneratorAbstract extends AbstractHttlGenerator {
     private JSWrapper.Type type = JSWrapper.Type.CommonJS;
     private String jsPackageName;
     protected NameMaper apiNameMaper = new PatternNameMaper(
             "(?<name>.*)Controller", "${name}"
     );
 
-    public JavaScriptGenerator(String jsPackageName) {
+    public JavaScriptGeneratorAbstract(String jsPackageName) {
         this.jsPackageName = jsPackageName;
     }
 
@@ -103,7 +103,7 @@ public class JavaScriptGenerator extends HttlGenerator {
     public void copyTool(String name) throws Exception {
         File file = new File(outPath, name);
         FileUtils.copyInputStreamToFile(
-                JavaScriptGenerator.class.getResourceAsStream(
+                JavaScriptGeneratorAbstract.class.getResourceAsStream(
                         "/org/forkjoin/scrat/apikit/tool/generator/js/" + type.name() + "/tool/" + name
                 ),
                 file
@@ -149,7 +149,7 @@ public class JavaScriptGenerator extends HttlGenerator {
             if (packageFile.exists()) {
                 packageJson = (ObjectNode) JsonUtils.mapper.readTree(packageFile);
             } else {
-                try (InputStream inputStream = JavaScriptGenerator.class.getResourceAsStream(getTempl("package.json"))) {
+                try (InputStream inputStream = JavaScriptGeneratorAbstract.class.getResourceAsStream(getTempl("package.json"))) {
                     packageJson = (ObjectNode) JsonUtils.mapper.readTree(inputStream);
                 }
             }

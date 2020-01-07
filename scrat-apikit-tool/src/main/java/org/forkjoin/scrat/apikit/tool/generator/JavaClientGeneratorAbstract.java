@@ -8,11 +8,11 @@ import java.io.File;
 /**
  *
  */
-public class JavaClientGenerator extends JavaGenerator {
+public class JavaClientGeneratorAbstract extends AbstractJavaGeneratorAbstract {
     private boolean isAnnotations = false;
 
 
-    public JavaClientGenerator() {
+    public JavaClientGeneratorAbstract() {
     }
 
 

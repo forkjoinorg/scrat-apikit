@@ -53,9 +53,7 @@ public abstract class AbstractGenerator extends AbstractFileGenerator {
                 .fromIterable(messages)
                 .map(messageInfo -> {
                     String packageName = messageInfo.getPackageName();
-                    String name = messageInfo.getName();
 
-                    boolean isInPack = sourceRootPackage.startsWith(packageName);
                     String distPackage = messagePackageNameMapper.apply(sourceRootPackage, packageName);
 
                     Set<String> nameSet = names.computeIfAbsent(distPackage, k -> new HashSet<>());
