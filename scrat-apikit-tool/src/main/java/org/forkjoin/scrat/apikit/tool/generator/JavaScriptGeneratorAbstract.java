@@ -1,15 +1,14 @@
 package org.forkjoin.scrat.apikit.tool.generator;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.forkjoin.scrat.apikit.tool.Utils;
 import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
+import org.forkjoin.scrat.apikit.tool.info.EnumInfo;
 import org.forkjoin.scrat.apikit.tool.info.MessageInfo;
 import org.forkjoin.scrat.apikit.tool.utils.JsonUtils;
-import org.forkjoin.scrat.apikit.tool.wrapper.BuilderWrapper;
-import org.forkjoin.scrat.apikit.tool.wrapper.JSApiWrapper;
-import org.forkjoin.scrat.apikit.tool.wrapper.JSMessageWrapper;
-import org.forkjoin.scrat.apikit.tool.wrapper.JSWrapper;
+import org.forkjoin.scrat.apikit.tool.wrapper.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -57,6 +56,9 @@ public class JavaScriptGeneratorAbstract extends AbstractHttlGenerator {
     @Override
     public void generateApi(ApiInfo apiInfo) throws Exception {
         JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName, apiNameMaper);
+        if(CollectionUtils.isNotEmpty(filterList)){
+            utils.setFilterList(filterList);
+        }
         File dFile = getTsDFileName(utils);
         File file = getFileName(utils);
         utils.setType(type);
@@ -84,6 +86,15 @@ public class JavaScriptGeneratorAbstract extends AbstractHttlGenerator {
         return jsMessageWrapper;
     }
 
+    @Override
+    protected BuilderWrapper<EnumInfo> createEnumWarpper(EnumInfo enumInfo, String distPackage, String distName) {
+        JSEnumWrapper jsEnumWrapper = new JSEnumWrapper(context, enumInfo, rootPackage);
+        jsEnumWrapper.setDistName(distName);
+        jsEnumWrapper.setDistPackage(distPackage);
+        jsEnumWrapper.setType(type);
+        return jsEnumWrapper;
+    }
+
 
     @Override
     public void generateMessage(BuilderWrapper<MessageInfo> utils) throws Exception {
@@ -98,6 +109,11 @@ public class JavaScriptGeneratorAbstract extends AbstractHttlGenerator {
         );
 
         FileUtils.write(file, "", "utf8");
+    }
+
+    @Override
+    public void generateEnum(BuilderWrapper<EnumInfo> builderWrapper) throws Exception {
+
     }
 
     public void copyTool(String name) throws Exception {

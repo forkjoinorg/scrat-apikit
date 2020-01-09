@@ -71,6 +71,10 @@ public class Context {
         return messageMap.values();
     }
 
+    public Collection<EnumInfo> getEnums() {
+        return enumMap.values();
+    }
+
     public void setRootDir(File rootDir) {
         this.rootDir = rootDir;
     }
@@ -83,8 +87,20 @@ public class Context {
         return messageWrapperMap.get(fullName);
     }
 
+    public BuilderWrapper<EnumInfo> getEnumWrapper(String fullName) {
+        return enumWrapperMap.get(fullName);
+    }
+
     public void setMessageWrapperMap(Map<String, BuilderWrapper<MessageInfo>> messageWrapperMap) {
         this.messageWrapperMap = messageWrapperMap;
+    }
+
+    public void setEnumWrapperMap(Map<String, BuilderWrapper<EnumInfo>> enumWrapperMap) {
+        this.enumWrapperMap = enumWrapperMap;
+    }
+
+    public Map<String, BuilderWrapper<EnumInfo>> getEnumWrapperMap() {
+        return enumWrapperMap;
     }
 
     public String[] getSrcPaths() {

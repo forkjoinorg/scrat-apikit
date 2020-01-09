@@ -21,13 +21,13 @@ $!{utils.imports}
 $!{utils.comment(" * ")}
  */
 public class $!{utils.name} {
-    private ReactiveHttpClientAdapter httpClientAdapter;
+    private ApiAdapter apiAdapter;
 
     public $!{utils.name}() {
     }
 
-    public $!{utils.name}(ReactiveHttpClientAdapter httpClientAdapter) {
-        this.httpClientAdapter = httpClientAdapter;
+    public $!{utils.name}(ApiAdapter apiAdapter) {
+        this.apiAdapter = apiAdapter;
     }
 
 <!--#for(method : m.methodInfos)-->
@@ -35,34 +35,53 @@ public class $!{utils.name} {
 
    /**
    $!{utils.formatBaseComment(method.comment,"    * ")}
-       *
+     *
    $!{utils.requestComment(method,"    * ")}
-       */
-       public Mono<$!{utils.resultData(method)}> $!{method.name}($!{utils.params(method)}) {
-           Map<String, Object> _uriVariables = new HashMap<>();
-   <!--        #for(param : method.pathParams)-->
-           _uriVariables.put("$!{param.getName()}", $!{param.getName()});
-   <!--        #end-->
-           String _url = ApiUtils.expandUriComponent("$!{method.url}", _uriVariables);
+     */
+    public Mono<$!{utils.resultData(method)}> $!{method.name}($!{utils.params(method)}) {
 
-   <!--        #if(method.formParams)-->
-           <!--#set(param = method.formParams[0])-->
-           List<Entry<String, Object>> _form = $!{param.name}.encode("", new ArrayList<Entry<String, Object>>());
-           return httpClientAdapter.request("$!{method.type.name()}", _url, _form, _$!{method.index}Type, ${method.account});
-   <!--        #else-->
-           return httpClientAdapter.request("$!{method.type.name()}", _url, null, _$!{method.index}Type, ${method.account});
-   <!--        #end-->
+<!--        #for(param : method.params)-->
+<!--            #if(!param.isRequired)-->
+           ${utils.toJavaTypeString(param.getTypeInfo(), false, true)} ${param.getName()} = ${param.getName()}Opt.orElse($!{utils.toValue(param)});
+<!--            #end-->
+<!--        #end-->
+
+            RequestInfo _requestInfo = new  RequestInfo();
+            _requestInfo.setMethod("$!{method.type.name()}");
+            _requestInfo.setUri("$!{method.url}");
+            _requestInfo.setAccount($!{method.account});
+
+<!--        #if(method.isHasPart)-->
+                _requestInfo.setRequestType(RequestType.MULTIPART);
+<!--        #else-->
+                _requestInfo.setRequestType(RequestType.FORM);
+<!--        #end-->
+             _requestInfo.setType(_$!{method.index}Type);
+
+<!--        #for(param : method.params)-->
+<!--            #if(param.isPathVariable)-->
+            _requestInfo.addPathVar("$!{param.getAnnotationName()}",$!{param.getName()});
+<!--            #else(param.isFormParam)-->
+            _requestInfo.addForm($!{param.getName()}::encode);
+<!--            #else(param.isRequestParam || param.isRequestPartFile || param.isRequestPartField)-->
+            _requestInfo.addFormParam("$!{param.getAnnotationName()}",$!{param.getName()});
+<!--            #else(param.isRequestHeader)-->
+            _requestInfo.addHeader("$!{param.getAnnotationName()}",$!{param.getName()});
+<!--            #end-->
+<!--        #end-->
+
+            return apiAdapter.request(_requestInfo);
        }
 
 
 <!--#end-->
 
-    public void setHttpClientAdapter(ReactiveHttpClientAdapter httpClientAdapter) {
-		this.httpClientAdapter = httpClientAdapter;
+    public void setApiAdapter(ApiAdapter apiAdapter) {
+		this.apiAdapter = apiAdapter;
 	}
 
-	public ReactiveHttpClientAdapter getHttpClientAdapter() {
-		return httpClientAdapter;
+	public ApiAdapter getApiAdapter() {
+		return apiAdapter;
 	}
 
 <!--#for(method : m.methodInfos)-->

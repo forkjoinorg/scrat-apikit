@@ -31,17 +31,6 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 	public $!{m.name}(){
 	}
 
-<!--#if(!m.properties.empty())-->
-	public $!{m.name}($!{utils.getConstructorString()}){
-<!--    #for(attr : m.properties)-->
-<!--        #if(!attr.isSuperProperty)-->
-		this.$!{attr.name} = $!{attr.name};
-<!--		#end-->
-<!--    #end-->
-	}
-<!--#end-->
-
-
 
 <!--#for(attr : m.properties)-->
 

@@ -1,17 +1,15 @@
 package org.forkjoin.scrat.apikit.tool.wrapper;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
-import org.forkjoin.scrat.apikit.tool.info.AnnotationInfo;
-import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
-import org.forkjoin.scrat.apikit.tool.info.ApiMethodInfo;
-import org.forkjoin.scrat.apikit.tool.info.ApiMethodParamInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.tool.info.*;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 //import org.forkjoin.spring.annotation.Account;
 //import org.forkjoin.spring.annotation.AccountParam;
@@ -39,8 +37,7 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
     }
 
     public String getImports() {
-        StringBuilder sb = new StringBuilder();
-        Flux
+        return Flux
                 .fromIterable(moduleInfo.getMethodInfos())
                 .flatMapIterable(m -> {
                     List<TypeInfo> types = new ArrayList<>();
@@ -53,21 +50,16 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
                     findTypes(type, types);
                     return types;
                 })
-                .filter(typeInfo -> typeInfo.getType().equals(TypeInfo.Type.OTHER))
-                .filter(typeInfo -> !typeInfo.isCollection())
-                .filter(typeInfo -> !typeInfo.isGeneric())
-                .map(TypeInfo::getFullName)
+                .filter(this::filterType)
+                .map(ClassInfo::new)
+                .map(this::map)
                 .distinct()
                 .sort(Comparator.naturalOrder())
-                .filter(fullName -> context.getMessageWrapper(fullName) != null)
-                .map(fullName -> context.getMessageWrapper(fullName))
-                .filter(w -> !w.getDistPackage().equals(getDistPackage()))
-                .doOnNext(r -> sb.append("import ").append(r.getDistPack()).append(".").append(r.getDistName()).append(";\n"))
-                .collectList()
-                .block();
-
-        return sb.toString();
+                .flatMapIterable(this::toImports)
+                .collect(Collectors.joining()).block();
     }
+
+
 //    @Override
 //    public void initImport() {
 //        ArrayList<ApiMethodInfo> methodInfos = moduleInfo.getMethodInfos();
@@ -121,24 +113,70 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
                 "RequestCallback<" + result(method) + "> requestCallback";
     }
 
-    @Override
+
+    public String params(ApiMethodInfo method) {
+        return params(method, true);
+    }
+
     public String params(ApiMethodInfo method, boolean isAnnotation) {
         StringBuilder sb = new StringBuilder();
         ArrayList<ApiMethodParamInfo> params = method.getParams();
         for (int i = 0; i < params.size(); i++) {
-            ApiMethodParamInfo attributeInfo = params.get(i);
-            if (attributeInfo.isFormParam() || attributeInfo.isPathVariable()) {
-                if (sb.length() > 0) {
-                    sb.append(", ");
-                }
-                sb.append(toJavaTypeString(attributeInfo.getTypeInfo(), false, true));
+            ApiMethodParamInfo paramInfo = params.get(i);
+            String name = paramInfo.getAnnotationName();
+
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            if (paramInfo.isRequired()) {
+//                HttpEntity<?>
+
+                sb.append(toJavaTypeString(paramInfo.getTypeInfo(), false, true));
+
                 sb.append(' ');
-                sb.append(attributeInfo.getName());
+                sb.append(paramInfo.getName());
+            } else {
+                //Optional<String> paramOpt
+                sb.append("Optional<");
+                sb.append(toJavaTypeString(paramInfo.getTypeInfo(), false, true));
+                sb.append("> ");
+                sb.append(paramInfo.getName());
+                sb.append("Opt");
             }
         }
         return sb.toString();
     }
 
+    public String toValue(ApiMethodParamInfo paramInfo) {
+        TypeInfo typeInfo = paramInfo.getTypeInfo();
+        String escapeJava = StringEscapeUtils.escapeJava(paramInfo.getDefaultValue());
+        if(paramInfo.getDefaultValue() == null){
+            return "null";
+        }
+
+        TypeInfo.Type type = typeInfo.getType();
+
+        switch (type) {
+            case LONG:
+            case FLOAT:
+            case SHORT:
+            case DOUBLE:
+            case BOOLEAN:
+            case INT: {
+                return type.getName() + "valueOf(\"" + escapeJava + "\")";
+            }
+            case STRING: {
+                return "\"" + escapeJava + "\"";
+            }
+            case DATE: {
+                // <T> T parseDate(String str,Class<T> cls) throws IOException;
+                return "apiAdapter.parseDate(\"" + escapeJava + "\", Date.class)";
+            }
+            default: {
+                throw new RuntimeException("不支持的类型" + typeInfo);
+            }
+        }
+    }
 
     public String args(ApiMethodInfo method, boolean isAnnotation) {
         StringBuilder sb = new StringBuilder();

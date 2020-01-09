@@ -2,6 +2,7 @@ package org.forkjoin.scrat.apikit.tool.generator;
 
 import org.forkjoin.scrat.apikit.tool.AbstractGenerator;
 import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
+import org.forkjoin.scrat.apikit.tool.info.EnumInfo;
 import org.forkjoin.scrat.apikit.tool.info.MessageInfo;
 import org.forkjoin.scrat.apikit.tool.wrapper.BuilderWrapper;
 
@@ -9,9 +10,15 @@ import org.forkjoin.scrat.apikit.tool.wrapper.BuilderWrapper;
  * 生成 apidoc 项目规定的格式的json
  * 标准 https://github.com/apidoc/apidoc-spec
  */
+
 public class ApiDocGenerator extends AbstractGenerator {
     @Override
     protected BuilderWrapper<MessageInfo> createMessageWarpper(MessageInfo messageInfo, String distPackage, String distName) {
+        return null;
+    }
+
+    @Override
+    protected BuilderWrapper<EnumInfo>  createEnumWarpper(EnumInfo enumInfo, String distPackage, String distName) {
         return null;
     }
 
@@ -22,6 +29,11 @@ public class ApiDocGenerator extends AbstractGenerator {
 
     @Override
     public void generateMessage(BuilderWrapper<MessageInfo> builderWrapper) throws Exception {
+
+    }
+
+    @Override
+    public void generateEnum(BuilderWrapper<EnumInfo> builderWrapper) throws Exception {
 
     }
 

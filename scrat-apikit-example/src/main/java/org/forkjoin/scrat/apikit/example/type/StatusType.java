@@ -1,5 +1,21 @@
 package org.forkjoin.scrat.apikit.example.type;
 
-public enum StatusType {
-    INIT,OK
+import org.forkjoin.scrat.apikit.core.Ignore;
+
+/**
+ * type
+ */
+public enum  StatusType {
+    /**
+     * INIT
+     */
+    INIT(0),
+    /**
+     * OK
+     */
+    OK(2);
+
+    StatusType(int i) {
+
+    }
 }

@@ -4,16 +4,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.Utils;
-import org.forkjoin.scrat.apikit.tool.info.AnnotationInfo;
-import org.forkjoin.scrat.apikit.tool.info.FieldInfo;
-import org.forkjoin.scrat.apikit.tool.info.MessageInfo;
-import org.forkjoin.scrat.apikit.tool.info.PropertyInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.tool.info.*;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author zuoge85 on 15/6/14.
@@ -26,7 +23,6 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
         super(context, messageInfo, rootPackage);
     }
 
-
     @Override
     public String formatAnnotations(List<AnnotationInfo> annotations, String start) {
         return null;
@@ -37,11 +33,8 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
 
     }
 
-
     public String getImports() {
-        StringBuilder sb = new StringBuilder();
-
-        Flux
+        return Flux
                 .fromIterable(moduleInfo.getProperties())
                 .map(FieldInfo::getTypeInfo)
                 .flatMapIterable(type -> {
@@ -52,24 +45,13 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
                     }
                     return types;
                 })
-                .filter(typeInfo -> typeInfo.getType().equals(TypeInfo.Type.OTHER))
-                .filter(typeInfo -> !typeInfo.isCollection())
-                .filter(typeInfo -> !typeInfo.isGeneric())
-                .map(TypeInfo::getFullName)
+                .filter(this::filterType)
+                .map(ClassInfo::new)
                 .distinct()
                 .sort(Comparator.naturalOrder())
-                .filter(fullName -> context.getMessageWrapper(fullName) != null)
-                .map(fullName -> context.getMessageWrapper(fullName))
-                .filter(w -> !w.getDistPackage().equals(getDistPackage()))
-                .doOnNext(r -> sb.append("import ").append(r.getDistPack()).append(".").append(r.getDistName()).append(";\n"))
-                .collectList()
-                .block();
-
-        return sb.toString();
+                .flatMapIterable(this::toImports)
+                .collect(Collectors.joining()).block();
     }
-
-
-
 
     public String getSuperInfo() {
         TypeInfo superType = moduleInfo.getSuperType();
@@ -80,7 +62,7 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
         }
     }
 
-    public boolean isHasSuper(){
+    public boolean isHasSuper() {
         return moduleInfo.getSuperType() != null;
     }
 
@@ -148,7 +130,7 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
 
         for (PropertyInfo attr : moduleInfo.getProperties()) {
             sb.append(attr.getName());
-            if(attr.isSuperProperty()){
+            if (attr.isSuperProperty()) {
                 continue;
             }
             if (attr.getTypeInfo().isArray()) {
@@ -184,7 +166,7 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
     public String getConstructorString() {
         StringBuilder sb = new StringBuilder();
         for (PropertyInfo attr : moduleInfo.getProperties()) {
-            if(attr.isSuperProperty()){
+            if (attr.isSuperProperty()) {
                 continue;
             }
             if (sb.length() != 0) {
@@ -205,7 +187,7 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
         }
         StringBuilder sb = new StringBuilder();
         for (PropertyInfo attr : moduleInfo.getProperties()) {
-            if(attr.isSuperProperty()){
+            if (attr.isSuperProperty()) {
                 continue;
             }
             sb.append('\n');
@@ -252,7 +234,7 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
                             .append("));\n");
                     sb.append(start).append("}\n");
                 }
-            } else if (typeInfo.isOtherType()) {
+            } else if (typeInfo.isOtherType() && !typeInfo.isEnum()) {
                 sb.append(start).append(" if (").append(name).append(" != null) {\n");
                 sb.append(start).append("    ").append(name).append(".encode(").append(parentName).append(" + \"").append(name).append(".\", $list);");
                 sb.append(start).append("}\n");

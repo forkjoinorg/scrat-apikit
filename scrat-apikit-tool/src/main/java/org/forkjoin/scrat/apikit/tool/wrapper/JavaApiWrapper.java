@@ -5,15 +5,13 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
-import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
-import org.forkjoin.scrat.apikit.tool.info.ApiMethodInfo;
-import org.forkjoin.scrat.apikit.tool.info.ApiMethodParamInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
-import org.forkjoin.scrat.apikit.tool.utils.CommentUtils;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.forkjoin.scrat.apikit.tool.info.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,9 +23,11 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
     private String version;
     private NameMaper apiNameMaper;
 
+
     public JavaApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, NameMaper apiNameMaper) {
         super(context, moduleInfo, rootPackage);
         this.apiNameMaper = apiNameMaper;
+
     }
 
     @Override
@@ -52,8 +52,6 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
 
     public String getImports() {
         StringBuilder sb = new StringBuilder();
-
-
         return sb.toString();
     }
 
@@ -76,76 +74,22 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
      *
      */
     public String requestComment(ApiMethodInfo method, String start) {
-        StringBuilder sb = new StringBuilder(start);
-        sb.append("<div class='http-info'>http 说明")
-                .append("<ul>\n");
-
-        sb.append(start).append("<li><b>Uri:</b>").append(method.getUrl()).append("</li>\n");
-
-        Map<String, String> stringStringMap = CommentUtils.commentToMap(method.getComment());
-
-        ArrayList<ApiMethodParamInfo> params = method.getParams();
-        for (ApiMethodParamInfo attributeInfo : params) {
-            if (attributeInfo.isPathVariable()) {
-                String name = attributeInfo.getName();
-                String txt = stringStringMap.get(name);
-                sb.append(start).append("<li><b>PathVariable:</b> ")
-                        .append(
-                                StringEscapeUtils.escapeHtml4(
-                                        toJavaTypeString(attributeInfo.getTypeInfo(), false, true)
-                                )
-                        )
-                        .append(" ")
-                        .append(attributeInfo.getName());
-
-                if (StringUtils.isNotEmpty(txt)) {
-                    sb.append(" ");
-                    sb.append("<span>");
-                    sb.append(txt);
-                    sb.append("</span>");
-                }
-                sb.append("</li>\n");
-            } else {
-                sb.append(start).append("<li><b>Form:</b>")
-                        .append(
-                                StringEscapeUtils.escapeHtml4(
-                                        toJavaTypeString(attributeInfo.getTypeInfo(), false, true)
-                                )
-                        )
-                        .append("")
-                        .append(method.getName())
-                        .append("</li>\n");
-            }
-        }
-
-        String returnType = toJavaTypeString(method.getResultType(), false, true);
-
-        sb.append(start).append("<li><b>Model:</b> ").append("").append(
-                StringEscapeUtils.escapeHtml4(returnType)
-        ).append("").append("</li>\n");
-
-        if (method.isAccount()) {
-            sb.append(start).append("<li>需要登录</li>\n");
-        }
-
-
-        sb.append(start).append("</ul>\n").append(start).append("</div>\n");
-
+        StringBuilder sb = new StringBuilder();
         Map<String, ApiMethodParamInfo> paramMap = method
                 .getParams()
                 .stream()
                 .collect(Collectors.toMap(ApiMethodParamInfo::getName, r -> r));
 
-        if(method.getComment() != null){
+        if (method.getComment() != null) {
             List<List<String>> param = method.getComment().get("@param");
-            if(CollectionUtils.isNotEmpty(param)){
-                param.stream().filter(r->r.size()>1).forEach(list->{
+            if (CollectionUtils.isNotEmpty(param)) {
+                param.stream().filter(r -> r.size() > 1).forEach(list -> {
                     ApiMethodParamInfo methodParamInfo = paramMap.get(list.get(0));
-                    if(methodParamInfo != null){
+                    if (methodParamInfo != null) {
                         sb.append(start).append("@param ")
                                 .append(list.get(0))
                                 .append(" ")
-                                .append(list.size()>1? String.join(" ", list.subList(1, list.size())) :"")
+                                .append(list.size() > 1 ? String.join(" ", list.subList(1, list.size())) : "")
                                 .append("\n");
                     }
                 });
@@ -162,33 +106,6 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
         return StringUtils.stripEnd(sb.toString(), null);
     }
 
-
-    public String params(ApiMethodInfo method) {
-        return params(method, true);
-    }
-
-    public String params(ApiMethodInfo method, boolean isAnnotation) {
-        StringBuilder sb = new StringBuilder();
-        ArrayList<ApiMethodParamInfo> params = method.getParams();
-        for (int i = 0; i < params.size(); i++) {
-            ApiMethodParamInfo attributeInfo = params.get(i);
-            if (i > 0) {
-                sb.append(", ");
-            }
-            if (isAnnotation) {
-                if (attributeInfo.isPathVariable()) {
-                    sb.append("@").append(PathVariable.class.getSimpleName()).append(" ");
-                }
-                if (attributeInfo.isFormParam()) {
-                    sb.append("@").append(Valid.class.getSimpleName()).append(" ");
-                }
-            }
-            sb.append(toJavaTypeString(attributeInfo.getTypeInfo(), false, true));
-            sb.append(' ');
-            sb.append(attributeInfo.getName());
-        }
-        return sb.toString();
-    }
 
     public String args(ApiMethodInfo method, boolean isAnnotation) {
         StringBuilder sb = new StringBuilder();
@@ -230,4 +147,5 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
             sb.append(")");
         }
     }
+
 }

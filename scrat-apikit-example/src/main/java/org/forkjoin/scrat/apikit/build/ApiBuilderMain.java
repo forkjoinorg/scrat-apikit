@@ -1,15 +1,12 @@
 package org.forkjoin.scrat.apikit.build;
 
 
-import org.forkjoin.scrat.apikit.tool.Analyse;
-import org.forkjoin.scrat.apikit.tool.Context;
-import org.forkjoin.scrat.apikit.tool.Manager;
-import org.forkjoin.scrat.apikit.tool.MessageAnalyse;
-import org.forkjoin.scrat.apikit.tool.ObjectFactory;
-import org.forkjoin.scrat.apikit.tool.generator.JavaClientGenerator;
-import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGenerator;
+import org.forkjoin.scrat.apikit.tool.*;
+import org.forkjoin.scrat.apikit.tool.generator.JavaClientGeneratorAbstract;
+import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGeneratorAbstract;
 import org.forkjoin.scrat.apikit.tool.generator.PatternNameMaper;
-import org.forkjoin.scrat.apikit.tool.impl.ClassPathAnalyse;
+import org.forkjoin.scrat.apikit.tool.impl.ClassPathApiAnalyse;
+import org.forkjoin.scrat.apikit.tool.impl.ClassPathEnumAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathMessageAnalyse;
 import org.forkjoin.scrat.apikit.tool.wrapper.JSWrapper;
 import org.slf4j.Logger;
@@ -68,7 +65,7 @@ public class ApiBuilderMain implements CommandLineRunner {
         manager.analyse();
 
         {
-            JavaClientGenerator generator = new JavaClientGenerator();
+            JavaClientGeneratorAbstract generator = new JavaClientGeneratorAbstract();
             generator.setOutPath(javaClientDir.getAbsolutePath());
             generator.setApiNameMaper(new PatternNameMaper(
                     "(?<name>.*)Service", "${name}Api"
@@ -77,7 +74,7 @@ public class ApiBuilderMain implements CommandLineRunner {
             manager.generate(generator);
         }
         {
-            JavaScriptGenerator generator = new JavaScriptGenerator("test");
+            JavaScriptGeneratorAbstract generator = new JavaScriptGeneratorAbstract("test");
             generator.setType(JSWrapper.Type.ES6);
             generator.setOutPath(jsClientDir.getAbsolutePath());
             generator.setVersion("2");
@@ -87,13 +84,18 @@ public class ApiBuilderMain implements CommandLineRunner {
 
     private static ObjectFactory objectFactory = new ObjectFactory() {
         @Override
-        public Analyse createAnalyse() {
-            return new ClassPathAnalyse();
+        public ApiAnalyse createApiAnalyse() {
+            return new ClassPathApiAnalyse();
         }
 
         @Override
         public MessageAnalyse createMessageAnalyse() {
             return new ClassPathMessageAnalyse();
+        }
+
+        @Override
+        public EnumAnalyse createEnumAnalyse() {
+            return new ClassPathEnumAnalyse();
         }
 
         @Override

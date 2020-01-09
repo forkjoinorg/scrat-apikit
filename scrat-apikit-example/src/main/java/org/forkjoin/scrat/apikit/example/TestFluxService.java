@@ -22,13 +22,13 @@ import javax.validation.Valid;
 @RequestMapping("/testFlux/")
 public class TestFluxService {
 
-    /**
-     * 获取当前时间
-     */
-    @GetMapping("/instant/")
-    public Mono<GenericModel<String>> instant() {
-        return null;
-    }
+//    /**
+//     * 获取当前时间
+//     */
+//    @GetMapping("/instant/")
+//    public Mono<GenericModel<String>> instant() {
+//        return null;
+//    }
 //
 //    /**
 //     * 测试Flux

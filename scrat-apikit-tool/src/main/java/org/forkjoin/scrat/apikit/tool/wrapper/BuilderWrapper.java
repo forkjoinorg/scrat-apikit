@@ -3,12 +3,15 @@ package org.forkjoin.scrat.apikit.tool.wrapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
+import org.forkjoin.scrat.apikit.tool.info.ClassInfo;
 import org.forkjoin.scrat.apikit.tool.info.JavadocInfo;
 import org.forkjoin.scrat.apikit.tool.info.ModuleInfo;
 import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
 import org.forkjoin.scrat.apikit.tool.utils.CommentUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zuoge85 on 15/6/15.
@@ -19,6 +22,8 @@ public class BuilderWrapper<T extends ModuleInfo> {
     protected Context context;
     private String distPackage;
     private String distName;
+    protected List<ClassInfo> filterList;
+    private Map<ClassInfo, ClassInfo> classMap = new HashMap<>();
 
     public BuilderWrapper(Context context, T moduleInfo, String rootPackage) {
         this.context = context;
@@ -150,7 +155,38 @@ public class BuilderWrapper<T extends ModuleInfo> {
         return CommentUtils.formatBaseComment(comment, start);
     }
 
+    public List<ClassInfo> getFilterList() {
+        return filterList;
+    }
+
+    public void setFilterList(List<ClassInfo> filterList) {
+        this.filterList = filterList;
+    }
+
     public static String formatComment(JavadocInfo comment, String start) {
         return CommentUtils.formatComment(comment, start);
+    }
+
+    public ClassInfo map(ClassInfo source) {
+        return classMap.getOrDefault(source, source);
+    }
+
+
+    public TypeInfo map(TypeInfo typeInfo) {
+        if (typeInfo.getType() == TypeInfo.Type.OTHER) {
+            ClassInfo classInfo = map(new ClassInfo(typeInfo));
+            return typeInfo.clone(classInfo.getPackageName(), classInfo.getName());
+        } else {
+            return typeInfo;
+        }
+    }
+
+
+    public Map<ClassInfo, ClassInfo> getClassMap() {
+        return classMap;
+    }
+
+    public void addClassMap(ClassInfo source, ClassInfo dist) {
+        this.classMap.put(source, dist);
     }
 }

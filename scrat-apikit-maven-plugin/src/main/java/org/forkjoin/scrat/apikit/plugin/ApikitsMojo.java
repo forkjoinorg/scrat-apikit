@@ -9,6 +9,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
+import reactor.core.publisher.Hooks;
 
 import java.util.List;
 
@@ -18,6 +19,9 @@ import java.util.List;
         requiresDependencyResolution = ResolutionScope.RUNTIME
 )
 public class ApikitsMojo extends AbstractMojo {
+    static {
+        Hooks.onOperatorDebug();
+    }
     @Parameter
     private List<Group> groups;
 

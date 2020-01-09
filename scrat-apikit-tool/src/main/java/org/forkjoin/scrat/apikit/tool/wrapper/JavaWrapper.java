@@ -1,13 +1,19 @@
 package org.forkjoin.scrat.apikit.tool.wrapper;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.apache.commons.collections4.CollectionUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
-import org.forkjoin.scrat.apikit.tool.info.AnnotationInfo;
-import org.forkjoin.scrat.apikit.tool.info.ModuleInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.tool.info.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
+import org.springframework.http.codec.multipart.Part;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author zuoge85 on 15/6/15.
@@ -15,11 +21,61 @@ import java.util.List;
 public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
     public JavaWrapper(Context context, T moduleInfo, String rootPackage) {
         super(context, moduleInfo, rootPackage);
+
+
+        addClassMap(new ClassInfo(FilePart.class), new ClassInfo(HttpEntity.class));
+        addClassMap(new ClassInfo(FormFieldPart.class), new ClassInfo(HttpEntity.class));
     }
+
+    private Set<Class> TYPE_BACK = ImmutableSet.of(
+            Mono.class, Flux.class,
+            FormFieldPart.class, FilePart.class, Part.class, HttpEntity.class
+    );
+
+    private Set<ClassInfo> TYPE_BACK_FULLNAME = TYPE_BACK.stream()
+            .map(c -> new ClassInfo(c.getPackage().getName(), c.getSimpleName()))
+            .collect(Collectors.toSet());
+
 
     @Override
     public void init() {
         super.init();
+    }
+
+    protected Iterable<? extends String> toImports(ClassInfo classInfo) {
+        /**
+         * getMessageWrapper 返回结果已经过滤了，所以先处理非过滤的
+         */
+        BuilderWrapper<MessageInfo> w = context.getMessageWrapper(classInfo.getFullName());
+        if (w != null) {
+            if (!w.getDistPackage().equals(getDistPackage())) {
+                return Arrays.asList("import ", w.getDistPack(), ".", w.getDistName(), ";\n");
+            }
+        }
+
+        BuilderWrapper<EnumInfo> e = context.getEnumWrapper(classInfo.getFullName());
+        if (e != null) {
+            if (!e.getDistPackage().equals(getDistPackage())) {
+                return Arrays.asList("import ", e.getDistPack(), ".", e.getDistName(), ";\n");
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(this.filterList)) {
+            for (ClassInfo i : filterList) {
+                if (classInfo.equals(i)) {
+                    return Arrays.asList("import ", i.getPackageName(), ".", i.getName(), ";\n");
+                }
+            }
+        }
+
+        if (TYPE_BACK_FULLNAME.contains(classInfo)) {
+            return Arrays.asList("import ", classInfo.getPackageName(), ".", classInfo.getName(), ";\n");
+        }
+        return Collections.emptyList();
+    }
+
+    protected boolean filterType(TypeInfo typeInfo) {
+        return typeInfo.getType().equals(TypeInfo.Type.OTHER) && (!typeInfo.isCollection()) && (!typeInfo.isGeneric());
     }
 
     public String toJavaTypeStringNotArray(TypeInfo typeInfo) {
@@ -43,6 +99,7 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
      * @param isChildArrayList 参数类型是否处理数组
      */
     public String toJavaTypeString(TypeInfo typeInfo, boolean isWrap, boolean isArrayList, boolean isTypeArguments, boolean isChildArrayList) {
+        typeInfo = map(typeInfo);
         StringBuilder sb = new StringBuilder();
         TypeInfo.Type type = typeInfo.getType();
         if (type == TypeInfo.Type.BYTE && typeInfo.isArray()) {

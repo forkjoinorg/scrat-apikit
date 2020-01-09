@@ -160,7 +160,35 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
 
 
             Type pType = parameter.getParameterizedType();
-            ApiMethodParamInfo fieldInfo = new ApiMethodParamInfo(paramName, TypeInfo.form(pType));
+            TypeInfo typeInfo = TypeInfo.form(pType);
+            ApiMethodParamInfo fieldInfo;
+
+            if (isGenericWrapper(typeInfo)) {
+                if (CollectionUtils.isEmpty(typeInfo.getTypeArguments())) {
+                    throw new AnalyseException("类型不存在！!" + typeInfo);
+                }
+                if (typeInfo.getTypeArguments().size() != 1) {
+                    throw new AnalyseException("返回参数的类型变量数只能是1！!" + typeInfo);
+                }
+                boolean isSingle = isGenericWrapperSingle(typeInfo);
+                TypeInfo realResultType = typeInfo.getTypeArguments().get(0);
+
+                if (isSingle) {
+                    fieldInfo = new ApiMethodParamInfo(paramName, realResultType);
+                } else {
+                    TypeInfo realResultTypeArray = realResultType.clone();
+                    realResultTypeArray.setArray(true);
+
+                    apiMethodInfo.setResultType(realResultTypeArray);
+//                  apiMethodInfo.setResultWrappedType(resultWrappedType);
+                    apiMethodInfo.setResultDataType(realResultTypeArray);
+
+                    fieldInfo = new ApiMethodParamInfo(paramName, realResultTypeArray);
+                }
+            } else {
+                fieldInfo = new ApiMethodParamInfo(paramName, typeInfo);
+            }
+
 
             ApiMethodParamType apiMethodParamType;
             if (analyse(fieldInfo, AnnotationUtils.getAnnotation(parameter, PathVariable.class))) {
@@ -232,7 +260,6 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
 
     private ApiMethodParamType analyse(ApiMethodParamInfo fieldInfo, RequestPart annotation) {
         if (annotation != null) {
-            ApiMethodParamType apiMethodParamType;
             fieldInfo.setRequired(annotation.required());
             fieldInfo.setAnnotationName(StringUtils.isNotEmpty(annotation.name()) ? annotation.name() : annotation.value());
 
@@ -263,25 +290,14 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
             throw new AnalyseException("返回类型不能为空!" + apiMethodInfo);
         }
         TypeInfo resultType = TypeInfo.form(type);
-        TypeInfo.form(type);
-        /*
-         * 真真正正的返回类型
-         */
-        Class<?> cls = null;
-        try {
-            cls = resultType.toClass();
-        } catch (ClassNotFoundException ignored) {
-        }
-        if (cls != null
-                && (Flux.class.isAssignableFrom(cls)
-                || Mono.class.isAssignableFrom(cls))) {
+        if (isGenericWrapper(resultType)) {
             if (CollectionUtils.isEmpty(resultType.getTypeArguments())) {
                 throw new AnalyseException("类型不存在！!" + resultType);
             }
             if (resultType.getTypeArguments().size() != 1) {
                 throw new AnalyseException("返回参数的类型变量数只能是1！!" + resultType);
             }
-            boolean isSingle = Mono.class.isAssignableFrom(cls);
+            boolean isSingle = isGenericWrapperSingle(resultType);
             TypeInfo realResultType = resultType.getTypeArguments().get(0);
 
 //            TypeInfo resultWrappedType = newResultTypeInfo(realResultType);
@@ -307,6 +323,20 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
 //            apiMethodInfo.setResultWrappedType(resultWrappedType);
             apiMethodInfo.setResultDataType(resultType);
         }
+    }
+
+    private boolean isGenericWrapperSingle(TypeInfo cls) {
+        return equals(cls, Mono.class);
+    }
+
+    private boolean equals(TypeInfo typeInfo, Class<?> cls) {
+        return Objects.equals(typeInfo.getPackageName(), cls.getPackage().getName()) &&
+                Objects.equals(typeInfo.getName(), cls.getSimpleName());
+    }
+
+    private boolean isGenericWrapper(TypeInfo cls) {
+        return cls != null
+                && (equals(cls, Mono.class) || equals(cls, Flux.class));
     }
 
 

@@ -1,0 +1,24 @@
+<!--#set(EnumInfo m)-->
+<!--#set(EnumElementInfo ele)-->
+<!--#set(JavaEnumWrapper utils)-->
+<!--#set(TypeInfo type)-->
+package $!{utils.getDistPack()};
+
+
+/**
+$!{utils.comment(" * ")}
+ */
+public enum $!{utils.distName}{
+<!--#for(ele : m.enumElementInfos)-->
+<!--    #if(ele.comment)-->
+    /**
+$!{utils.formatComment(ele.comment,"     * ")}
+     */
+<!--    #end-->
+<!--    #if(for.last)-->
+    $!{ele.name};
+<!--    #else-->
+    $!{ele.name},
+<!--    #end-->
+<!--#end-->
+}

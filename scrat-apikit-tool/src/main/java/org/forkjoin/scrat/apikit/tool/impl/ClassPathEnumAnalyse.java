@@ -93,7 +93,7 @@ public class ClassPathEnumAnalyse implements EnumAnalyse {
                     })
                     .map(e -> {
                         EnumElementInfo enumElementInfo = new EnumElementInfo(e.name(), e.ordinal());
-                        jdtClassWappperOpt.map(p -> p.getEnumElementComment(enumElementInfo.getName())).ifPresent(enumElementInfo::setJavadocInfo);
+                        jdtClassWappperOpt.map(p -> p.getEnumElementComment(enumElementInfo.getName())).ifPresent(enumElementInfo::setComment);
                         return enumElementInfo;
                     })
                     .sorted(Comparator.comparingInt(EnumElementInfo::getOrdinal))

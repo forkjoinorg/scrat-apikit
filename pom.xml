@@ -7,7 +7,7 @@
     <groupId>org.forkjoin.scrat.apikit</groupId>
     <artifactId>scrat-apikit</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>2.0.1</version>
     <modules>
         <module>scrat-apikit-core</module>
         <module>scrat-apikit-tool</module>
@@ -20,11 +20,10 @@
         <java.version>1.8</java.version>
         <commons-io.version>2.6</commons-io.version>
         <guava.version>24.1-jre</guava.version>
-        <spring.boot.version>2.0.0.RELEASE</spring.boot.version>
+        <spring.boot.version>2.1.11.RELEASE</spring.boot.version>
         <httl.version>1.0.11</httl.version>
         <fast-classpath-scanner>2.18.1</fast-classpath-scanner>
-
-        <org.eclipse.jdt.core.version>3.13.100</org.eclipse.jdt.core.version>
+        <org.eclipse.jdt.core.version>3.20.0</org.eclipse.jdt.core.version>
         <org.eclipse.jgit.version>5.1.1.201809181055-r</org.eclipse.jgit.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <paranamer.version>2.8</paranamer.version>

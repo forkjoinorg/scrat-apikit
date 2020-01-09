@@ -3,7 +3,6 @@ package org.forkjoin.scrat.apikit.tool.info;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.forkjoin.scrat.apikit.core.ActionType;
-import org.forkjoin.scrat.apikit.tool.AnalyseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +26,8 @@ public class ApiMethodInfo {
     private ArrayList<ApiMethodParamInfo> params = new ArrayList<>();
     private ArrayList<ApiMethodParamInfo> pathParams = new ArrayList<>();
     private ArrayList<ApiMethodParamInfo> formParams = new ArrayList<>();
+    private ArrayList<ApiMethodParamInfo> requestPartFieldParams = new ArrayList<>();
+    private ArrayList<ApiMethodParamInfo> requestPartFileParams = new ArrayList<>();
 
 
     /**
@@ -57,9 +58,20 @@ public class ApiMethodInfo {
         if (param.isFormParam()) {
             formParams.add(param);
         }
-        if (formParams.size() > 1) {
-            throw new AnalyseException("分析错误！暂时只支持单表单");
+        if (param.isRequestPartField()) {
+            requestPartFieldParams.add(param);
         }
+        if (param.isRequestPartFile()) {
+            requestPartFileParams.add(param);
+        }
+    }
+
+    public boolean isHasForm() {
+        return formParams.size() > 0;
+    }
+
+    public boolean isHasPart() {
+        return requestPartFieldParams.size() > 0 || requestPartFileParams.size() > 0;
     }
 
     protected void findTypes(TypeInfo type, List<TypeInfo> list) {

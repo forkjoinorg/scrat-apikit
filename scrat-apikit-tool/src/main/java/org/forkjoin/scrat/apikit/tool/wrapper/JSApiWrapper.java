@@ -1,15 +1,14 @@
 package org.forkjoin.scrat.apikit.tool.wrapper;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
 import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
 import org.forkjoin.scrat.apikit.tool.info.ApiMethodInfo;
 import org.forkjoin.scrat.apikit.tool.info.ApiMethodParamInfo;
 import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
-import org.forkjoin.scrat.apikit.tool.utils.CommentUtils;
 import org.forkjoin.scrat.apikit.tool.utils.NameUtils;
 import reactor.core.publisher.Flux;
 
@@ -151,59 +150,6 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
      */
     public String requestComment(ApiMethodInfo method, String start) {
         StringBuilder sb = new StringBuilder(start);
-        sb.append("<div class='http-info'>http 说明")
-                .append("<ul>\n");
-
-        sb.append(start).append("<li><b>Uri:</b>").append(method.getUrl()).append("</li>\n");
-
-        Map<String, String> stringStringMap = CommentUtils.commentToMap(method.getComment());
-
-        ArrayList<ApiMethodParamInfo> params = method.getParams();
-        for (ApiMethodParamInfo attributeInfo : params) {
-            if (attributeInfo.isPathVariable()) {
-                String name = attributeInfo.getName();
-                String txt = stringStringMap.get(name);
-                sb.append(start).append("<li><b>PathVariable:</b> ")
-                        .append(
-                                StringEscapeUtils.escapeHtml4(
-                                        toTypeString(attributeInfo.getTypeInfo())
-                                )
-                        )
-                        .append(" ")
-                        .append(attributeInfo.getName());
-
-                if (StringUtils.isNotEmpty(txt)) {
-                    sb.append(" ");
-                    sb.append("<span>");
-                    sb.append(txt);
-                    sb.append("</span>");
-                }
-                sb.append("</li>\n");
-            } else if (attributeInfo.isFormParam()) {
-                sb.append(start).append("<li><b>Form:</b>")
-                        .append(
-                                StringEscapeUtils.escapeHtml4(
-                                        toTypeString(attributeInfo.getTypeInfo())
-                                )
-                        )
-                        .append("")
-                        .append(method.getName())
-                        .append("</li>\n");
-            }
-        }
-
-        String returnType = toTypeString(method.getResultType());
-
-        sb.append(start).append("<li><b>Model:</b> ").append("").append(
-                StringEscapeUtils.escapeHtml4(returnType)
-        ).append("").append("</li>\n");
-
-        if (method.isAccount()) {
-            sb.append(start).append("<li>需要登录</li>\n");
-        }
-
-
-        sb.append(start).append("</ul>\n").append(start).append("</div>\n");
 
         Map<String, ApiMethodParamInfo> paramMap = method
                 .getParams()

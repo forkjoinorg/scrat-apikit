@@ -10,17 +10,12 @@ import org.forkjoin.scrat.apikit.plugin.bean.Group;
 import org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask;
 import org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask;
 import org.forkjoin.scrat.apikit.plugin.bean.Task;
-import org.forkjoin.scrat.apikit.tool.AbstractFileGenerator;
-import org.forkjoin.scrat.apikit.tool.Analyse;
-import org.forkjoin.scrat.apikit.tool.Context;
-import org.forkjoin.scrat.apikit.tool.Generator;
-import org.forkjoin.scrat.apikit.tool.Manager;
-import org.forkjoin.scrat.apikit.tool.MessageAnalyse;
-import org.forkjoin.scrat.apikit.tool.ObjectFactory;
-import org.forkjoin.scrat.apikit.tool.generator.JavaClientGenerator;
-import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGenerator;
+import org.forkjoin.scrat.apikit.tool.*;
+import org.forkjoin.scrat.apikit.tool.generator.JavaClientGeneratorAbstract;
+import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGeneratorAbstract;
 import org.forkjoin.scrat.apikit.tool.generator.PatternNameMaper;
-import org.forkjoin.scrat.apikit.tool.impl.ClassPathAnalyse;
+import org.forkjoin.scrat.apikit.tool.impl.ClassPathApiAnalyse;
+import org.forkjoin.scrat.apikit.tool.impl.ClassPathEnumAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathMessageAnalyse;
 import org.forkjoin.scrat.apikit.tool.jgit.GitGenerator;
 
@@ -113,7 +108,12 @@ public class GenerateUtils {
     private static Generator createGenerator(Manager manager, Task task) throws Exception {
         if (task instanceof JavaClientTask) {
             JavaClientTask javaClientTask = (JavaClientTask) task;
-            JavaClientGenerator generator = new JavaClientGenerator();
+            JavaClientGeneratorAbstract generator = new JavaClientGeneratorAbstract();
+
+            if(CollectionUtils.isNotEmpty(task.getFilterList())){
+                generator.setFilterList(task.getFilterList());
+            }
+
             generator.setOutPath(javaClientTask.getOutPath());
             generator.setApiNameMaper(new PatternNameMaper(
                     javaClientTask.getNameMaperSource(), javaClientTask.getNameMaperDist()
@@ -122,7 +122,12 @@ public class GenerateUtils {
             return generator;
         } else if (task instanceof JavaScriptTask) {
             JavaScriptTask javaScriptTask = (JavaScriptTask) task;
-            JavaScriptGenerator generator = new JavaScriptGenerator("test");
+            JavaScriptGeneratorAbstract generator = new JavaScriptGeneratorAbstract("test");
+
+            if(CollectionUtils.isNotEmpty(task.getFilterList())){
+                generator.setFilterList(task.getFilterList());
+            }
+
             generator.setType(javaScriptTask.getType());
             generator.setOutPath(javaScriptTask.getOutPath());
             generator.setJsPackageName(javaScriptTask.getJsPackageName());
@@ -138,13 +143,18 @@ public class GenerateUtils {
 
     private static ObjectFactory objectFactory = new ObjectFactory() {
         @Override
-        public Analyse createAnalyse() {
-            return new ClassPathAnalyse();
+        public ApiAnalyse createApiAnalyse() {
+            return new ClassPathApiAnalyse();
         }
 
         @Override
         public MessageAnalyse createMessageAnalyse() {
             return new ClassPathMessageAnalyse();
+        }
+
+        @Override
+        public EnumAnalyse createEnumAnalyse() {
+            return new ClassPathEnumAnalyse();
         }
 
         @Override

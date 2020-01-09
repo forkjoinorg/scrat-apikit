@@ -1,29 +1,54 @@
 package org.forkjoin.scrat.apikit.example;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.forkjoin.TestModel;
-import org.forkjoin.scrat.apikit.example.form.GenericForm;
-import org.forkjoin.scrat.apikit.example.form.ObjectForm;
 import org.forkjoin.scrat.apikit.example.form.ValidForm;
-import org.forkjoin.scrat.apikit.example.model.GenericModel;
 import org.forkjoin.scrat.apikit.example.model.ObjectModel;
-import org.forkjoin.scrat.apikit.example.model.TestArrayModel;
-import org.forkjoin.scrat.apikit.example.model.TestWrapperModel;
-import org.forkjoin.scrat.apikit.example.model.ValidModel;
 import org.forkjoin.scrat.apikit.utils.ModelUtils;
-import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 
 @RestController
 @RequestMapping("/test")
 public class TestService {
+
+    @RequestMapping("/upload")
+    public ObjectModel upload(
+            @RequestPart("file1") Mono<FilePart> file ,
+            @RequestPart(value = "file2", required = false) Mono<FormFieldPart> formFieldPart
+    ) {
+        return ModelUtils.newObjectModel();
+    }
+
+    /**
+     * 你好
+     * @param sb 参数1
+     * @param param
+     * @param header
+     * @return
+     */
+    @RequestMapping("/testObject/{sb}")
+    public ObjectModel testObject(
+            @PathVariable String sb,
+            @RequestParam String param,
+            @RequestHeader String header
+    ) {
+        return ModelUtils.newObjectModel();
+    }
+
+    @RequestMapping("/testObjectDefault/{sb1}")
+    public ObjectModel testObjectDefault(
+            @Valid ValidForm form1,
+            @Valid ValidForm form2,
+            ValidForm form3,
+            @PathVariable(name = "sb1", required = false) String sb,
+            @RequestParam(name = "param1", defaultValue = "param1v", required = false) String param,
+            @RequestHeader(name = "header1", defaultValue = "header1v", required = false) String header
+    ) {
+        return ModelUtils.newObjectModel();
+    }
 //
 //    /**
 //     * 呵呵
@@ -86,10 +111,7 @@ public class TestService {
 //        return m;
 //    }
 //
-//    @RequestMapping("/testObject")
-//    public ObjectModel testObject() {
-//        return ModelUtils.newObjectModel();
-//    }
+
 //
 //    @RequestMapping("/testModel")
 //    public TestModel<Date> testModel() {

@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
+import org.springframework.http.codec.multipart.Part;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -32,8 +35,11 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
     private Set<TypeInfo> enumTypes = new LinkedHashSet<>();
 
     private Set<Class> TYPE_BACK = ImmutableSet.of(
-            Class.class, Object.class, void.class, Void.class, Mono.class, Flux.class
+            Class.class,
+            Object.class, void.class, Void.class, Mono.class, Flux.class,
+            FormFieldPart.class, FilePart.class, Part.class
     );
+    private Set<String> TYPE_BACK_FULLNAME = TYPE_BACK.stream().map(Class::getName).collect(Collectors.toSet());
 
     @Override
     public void analyse(Context context) {
@@ -69,6 +75,10 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
         if (typeInfo.isEnum()) {
             enumTypes.add(typeInfo);
         }
+        if (TYPE_BACK_FULLNAME.contains(typeInfo.getFullName())) {
+            return false;
+        }
+
         return typeInfo.getType().equals(TypeInfo.Type.OTHER)
                 && (!typeInfo.isCollection())
                 && (!typeInfo.isGeneric())

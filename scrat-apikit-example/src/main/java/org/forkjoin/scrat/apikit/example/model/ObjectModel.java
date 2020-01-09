@@ -34,6 +34,13 @@ public class ObjectModel extends BaseObj<Integer>{
         this.testWrapper = testWrapper;
     }
 
+    public StatusType getStatusType() {
+        return statusType;
+    }
+
+    public void setStatusType(StatusType statusType) {
+        this.statusType = statusType;
+    }
 
     @Override
     public String toString() {

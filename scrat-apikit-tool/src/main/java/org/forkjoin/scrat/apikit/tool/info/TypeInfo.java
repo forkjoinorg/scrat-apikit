@@ -266,6 +266,13 @@ public class TypeInfo implements Cloneable {
         }
     }
 
+    public TypeInfo clone(String packageName, String name) {
+        TypeInfo clone = this.clone();
+        clone.packageName = packageName;
+        clone.name = name;
+        return clone;
+    }
+
     @Override
     public String toString() {
         return "TypeInfo{" +
@@ -441,6 +448,15 @@ public class TypeInfo implements Cloneable {
             if (aClass != null) {
                 Class<?> primitive = ClassUtils.wrapperToPrimitive(aClass);
                 return primitive == null ? aClass.getSimpleName() : primitive.getSimpleName();
+            } else {
+                return null;
+            }
+        }
+
+        public String getName() {
+            Class aClass = classMap.get(this);
+            if (aClass != null) {
+                return aClass.getSimpleName();
             } else {
                 return null;
             }

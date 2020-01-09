@@ -10,13 +10,15 @@ import static org.forkjoin.scrat.apikit.type.ApiMethodParamType.*;
  */
 public class ApiMethodParamInfo extends FieldInfo {
     private ApiMethodParamType apiMethodParamType;
-    private boolean isRequired;
+    private boolean isRequired = true;
     private String annotationName;
     private String defaultValue;
 
     public ApiMethodParamInfo(String name, TypeInfo typeInfo) {
         super(name, typeInfo);
     }
+
+
 
     public boolean isFormParam() {
         return apiMethodParamType.equals(FORM_PARAM);

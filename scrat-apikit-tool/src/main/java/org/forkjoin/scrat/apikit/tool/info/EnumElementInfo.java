@@ -4,7 +4,7 @@ public class EnumElementInfo {
 
     private String name;
     private int ordinal;
-    private JavadocInfo javadocInfo;
+    private JavadocInfo comment;
 
     public EnumElementInfo() {
     }
@@ -14,10 +14,10 @@ public class EnumElementInfo {
         this.ordinal = ordinal;
     }
 
-    public EnumElementInfo(String name, int ordinal, JavadocInfo javadocInfo) {
+    public EnumElementInfo(String name, int ordinal, JavadocInfo comment) {
         this.name = name;
         this.ordinal = ordinal;
-        this.javadocInfo = javadocInfo;
+        this.comment = comment;
     }
 
     public String getName() {
@@ -37,12 +37,12 @@ public class EnumElementInfo {
     }
 
 
-    public JavadocInfo getJavadocInfo() {
-        return javadocInfo;
+    public JavadocInfo getComment() {
+        return comment;
     }
 
-    public void setJavadocInfo(JavadocInfo javadocInfo) {
-        this.javadocInfo = javadocInfo;
+    public void setComment(JavadocInfo comment) {
+        this.comment = comment;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class EnumElementInfo {
         return "EnumElementInfo{" +
                 "name='" + name + '\'' +
                 ", ordinal=" + ordinal +
-                ", javadocInfo=" + javadocInfo +
+                ", javadocInfo=" + comment +
                 '}';
     }
 }

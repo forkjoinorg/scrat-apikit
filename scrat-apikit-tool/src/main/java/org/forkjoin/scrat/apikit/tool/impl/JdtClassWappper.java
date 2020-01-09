@@ -76,7 +76,7 @@ public class JdtClassWappper {
                 .findFirst();
 
         if (!methodOpt.isPresent()) {
-            throw new AnalyseException("没有在源文件中找到方法:" + name);
+            return null;
         }
 
         MethodDeclaration methodDeclaration = methodOpt.get();
