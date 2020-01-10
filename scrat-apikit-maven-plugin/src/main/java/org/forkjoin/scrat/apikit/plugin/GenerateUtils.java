@@ -5,11 +5,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
-import org.forkjoin.scrat.apikit.plugin.bean.GitTask;
-import org.forkjoin.scrat.apikit.plugin.bean.Group;
-import org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask;
-import org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask;
-import org.forkjoin.scrat.apikit.plugin.bean.Task;
+import org.forkjoin.scrat.apikit.plugin.bean.*;
 import org.forkjoin.scrat.apikit.tool.*;
 import org.forkjoin.scrat.apikit.tool.generator.JavaClientGeneratorAbstract;
 import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGeneratorAbstract;
@@ -35,12 +31,13 @@ public class GenerateUtils {
         }
     }
 
-    public static void generate(String groupJson, String sourcePath, String[] srcPaths) {
+    public static void generate(String groupJson, String gitJson, String sourcePath, String[] srcPaths) {
         Group group = deserialize(groupJson, Group.class);
-        generate(group, sourcePath, srcPaths, new SystemStreamLog());
+        GitInfo git = gitJson == null ? null : deserialize(gitJson, GitInfo.class);
+        generate(group, git, sourcePath, srcPaths, new SystemStreamLog());
     }
 
-    public static void generate(Group group, String sourcePath, String[] srcPaths, Log log) {
+    public static void generate(Group group, GitInfo git, String sourcePath, String[] srcPaths, Log log) {
         String rootPackage = group.getRootPackage();
         List<Task> tasks = group.getTasks();
         if (CollectionUtils.isEmpty(tasks)) {
@@ -110,7 +107,7 @@ public class GenerateUtils {
             JavaClientTask javaClientTask = (JavaClientTask) task;
             JavaClientGeneratorAbstract generator = new JavaClientGeneratorAbstract();
 
-            if(CollectionUtils.isNotEmpty(task.getFilterList())){
+            if (CollectionUtils.isNotEmpty(task.getFilterList())) {
                 generator.setFilterList(task.getFilterList());
             }
 
@@ -124,7 +121,7 @@ public class GenerateUtils {
             JavaScriptTask javaScriptTask = (JavaScriptTask) task;
             JavaScriptGeneratorAbstract generator = new JavaScriptGeneratorAbstract("test");
 
-            if(CollectionUtils.isNotEmpty(task.getFilterList())){
+            if (CollectionUtils.isNotEmpty(task.getFilterList())) {
                 generator.setFilterList(task.getFilterList());
             }
 

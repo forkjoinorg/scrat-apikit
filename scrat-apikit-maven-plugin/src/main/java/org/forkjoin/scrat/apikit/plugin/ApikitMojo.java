@@ -13,7 +13,6 @@ import reactor.core.publisher.Hooks;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Mojo(name = "api", requiresDependencyCollection = ResolutionScope.COMPILE)
 public class ApikitMojo extends AbstractMojo {
@@ -45,7 +44,7 @@ public class ApikitMojo extends AbstractMojo {
 
         getLog().info("开始执行全部任务" + tasks + pluginContext);
 
-        MavenUtils.generate(project, new Group(tasks, rootPackage), sourcePath, compileSourceRoots);
+        MavenUtils.generate(project, new Group(tasks, rootPackage), sourcePath, compileSourceRoots, null);
 //        project.getsour
     }
 }

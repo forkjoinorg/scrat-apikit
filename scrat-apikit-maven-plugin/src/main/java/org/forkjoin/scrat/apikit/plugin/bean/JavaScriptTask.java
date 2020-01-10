@@ -3,20 +3,12 @@ package org.forkjoin.scrat.apikit.plugin.bean;
 import org.forkjoin.scrat.apikit.tool.wrapper.JSWrapper;
 
 public class JavaScriptTask extends Task{
-    protected String version;
-    protected String jsPackageName;
+     protected String jsPackageName;
     private JSWrapper.Type type = JSWrapper.Type.CommonJS;
     private String nameMaperSource;
 
     private String nameMaperDist;
 
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
 
     public JSWrapper.Type getType() {
         return type;

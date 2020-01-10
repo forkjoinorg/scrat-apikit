@@ -6,6 +6,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
+import org.forkjoin.scrat.apikit.plugin.bean.GitInfo;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class MavenUtils {
         mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
-    public static void generate(MavenProject project, Group group, String sourcePath, String[] srcPaths) {
+    public static void generate(MavenProject project, Group group, String sourcePath, String[] srcPaths, GitInfo git) {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             ClassLoader loader = getUrlClassLoader(project);
@@ -38,16 +39,18 @@ public class MavenUtils {
                     "generate",
                     String.class,
                     String.class,
+                    String.class,
                     String[].class
             );
 
             String groupJson = serialize(group);
+            String gitJson = (git == null ? null : serialize(git));
 
             /*
              * 切换后续操作的classLoad加载器
              */
             Thread.currentThread().setContextClassLoader(loader);
-            generateMethod.invoke(null, groupJson, sourcePath, srcPaths);
+            generateMethod.invoke(null, groupJson, gitJson, sourcePath, srcPaths);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
