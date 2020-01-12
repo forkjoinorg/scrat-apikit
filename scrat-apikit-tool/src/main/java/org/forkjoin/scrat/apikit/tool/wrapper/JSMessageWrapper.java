@@ -1,17 +1,14 @@
 package org.forkjoin.scrat.apikit.tool.wrapper;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
-import org.forkjoin.scrat.apikit.tool.info.FieldInfo;
-import org.forkjoin.scrat.apikit.tool.info.MessageInfo;
-import org.forkjoin.scrat.apikit.tool.info.PropertyInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.tool.info.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author zuoge85 on 15/6/14.
@@ -19,6 +16,23 @@ import java.util.List;
 public class JSMessageWrapper extends JSWrapper<MessageInfo> {
     public JSMessageWrapper(Context context, MessageInfo messageInfo, String rootPackage) {
         super(context, messageInfo, rootPackage);
+    }
+
+    public String typeParameters() {
+        List<String> typeParameters = moduleInfo.getTypeParameters();
+        if (CollectionUtils.isNotEmpty(typeParameters)) {
+            StringBuilder sb = new StringBuilder("<");
+            for (String typeParameter : typeParameters) {
+                if (sb.length() > 1) {
+                    sb.append(",");
+                }
+                sb.append(typeParameter).append("");
+            }
+            sb.append(">");
+            return sb.toString();
+        } else {
+            return "";
+        }
     }
 
     @Override
@@ -30,7 +44,7 @@ public class JSMessageWrapper extends JSWrapper<MessageInfo> {
         return Mono
                 .justOrEmpty(moduleInfo.getSuperType())
                 .map(TypeInfo::getFullName)
-                .filter(fullName -> context.getMessageWrapper(fullName)!=null)
+                .filter(fullName -> context.getMessageWrapper(fullName) != null)
                 .map(fullName -> context.getMessageWrapper(fullName))
                 .flatMapMany(w -> {
                     TypeInfo superType = w.getModuleInfo().getSuperType();
@@ -43,20 +57,21 @@ public class JSMessageWrapper extends JSWrapper<MessageInfo> {
     }
 
     public List<PropertyInfo> getProperties() {
-        return Flux
-                .fromIterable(moduleInfo.getProperties())
-                .mergeWith(getUpper())
-                .distinct(FieldInfo::getName)
-                .collectList()
-                .block();
+        return moduleInfo.getProperties();
+    }
+
+    public String getSuperInfo() {
+        TypeInfo superType = moduleInfo.getSuperType();
+        if (superType != null) {
+            return "extends " + toTypeString(superType, true);
+        } else {
+            return "";
+        }
     }
 
     public String getImports() {
-        StringBuilder sb = new StringBuilder();
-        Flux
+        return Flux
                 .fromIterable(moduleInfo.getProperties())
-                .mergeWith(getUpper())
-                .distinct(FieldInfo::getName)
                 .map(FieldInfo::getTypeInfo)
                 .flatMapIterable(type -> {
                     List<TypeInfo> types = new ArrayList<>();
@@ -66,38 +81,15 @@ public class JSMessageWrapper extends JSWrapper<MessageInfo> {
                     }
                     return types;
                 })
-                .filter(typeInfo -> typeInfo.getType().equals(TypeInfo.Type.OTHER))
-                .filter(typeInfo -> !typeInfo.isCollection())
-                .filter(typeInfo -> !typeInfo.isGeneric())
-                .map(TypeInfo::getFullName)
+                .filter(this::filterType)
+                .map(ClassInfo::new)
                 .distinct()
                 .sort(Comparator.naturalOrder())
-                .filter(fullName -> context.getMessageWrapper(fullName) != null)
-                .map(fullName -> context.getMessageWrapper(fullName))
-                .doOnNext(r -> {
-                    String distPackage = getDistPackage();
-                    String proTypeName = r.getDistName();
-                    if (r.getDistPackage().equals(distPackage)) {
-                        sb.append("import ")
-                                .append(proTypeName)
-                                .append(" from './").append(proTypeName).append("'\n");
-                    } else {
-                        int level = distPackage.split("\\.").length;
-                        sb.append("import ")
-                                .append(proTypeName)
-                                .append(" from '")
-                                .append(StringUtils.repeat("../", level))
-                                .append(r.getDistPackage())
-                                .append("/")
-                                .append(proTypeName)
-                                .append("'\n");
-                    }
-                })
-                .collectList()
-                .block();
-
-        return sb.toString();
+                .flatMapIterable(this::toImports)
+                .collect(Collectors.joining()).block();
     }
+
+
 
 
 //    @Override

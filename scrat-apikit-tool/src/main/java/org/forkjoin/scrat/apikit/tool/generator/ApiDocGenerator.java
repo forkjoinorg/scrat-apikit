@@ -13,12 +13,12 @@ import org.forkjoin.scrat.apikit.tool.wrapper.BuilderWrapper;
 
 public class ApiDocGenerator extends AbstractGenerator {
     @Override
-    protected BuilderWrapper<MessageInfo> createMessageWarpper(MessageInfo messageInfo, String distPackage, String distName) {
+    protected BuilderWrapper<MessageInfo> createMessageWrapper(MessageInfo messageInfo, String distPackage, String distName) {
         return null;
     }
 
     @Override
-    protected BuilderWrapper<EnumInfo>  createEnumWarpper(EnumInfo enumInfo, String distPackage, String distName) {
+    protected BuilderWrapper<EnumInfo> createEnumWrapper(EnumInfo enumInfo, String distPackage, String distName) {
         return null;
     }
 

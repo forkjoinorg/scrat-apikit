@@ -2,8 +2,6 @@ package org.forkjoin.scrat.apikit.tool.generator;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
-import org.forkjoin.scrat.apikit.tool.info.EnumInfo;
-import org.forkjoin.scrat.apikit.tool.wrapper.BuilderWrapper;
 import org.forkjoin.scrat.apikit.tool.wrapper.JavaClientApiWrapper;
 
 import java.io.File;
@@ -11,11 +9,11 @@ import java.io.File;
 /**
  *
  */
-public class JavaClientGeneratorAbstract extends AbstractJavaGeneratorAbstract {
+public class JavaClientGenerator extends AbstractJavaGenerator {
     private boolean isAnnotations = false;
 
 
-    public JavaClientGeneratorAbstract() {
+    public JavaClientGenerator() {
     }
 
 

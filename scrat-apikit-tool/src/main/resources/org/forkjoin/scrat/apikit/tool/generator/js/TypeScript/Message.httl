@@ -7,15 +7,16 @@ $!{utils.imports}
 /**
 $!{utils.comment(" * ")}
 */
-interface $!{m.name} {
+interface $!{utils.distName}$!{utils.typeParameters} $!{utils.superInfo} {
 <!--#for(attr : utils.properties)-->
-
+<!--    #if(!attr.isSuperProperty)-->
 <!--		#if(attr.comment)-->
 	/**
 $!{utils.formatComment(attr.comment,"	 * ")}
 	 */
 <!--		#end-->
     $!{attr.name}?:$!{utils.toTypeString(attr.typeInfo)};
+<!--    #end-->
 <!--#end-->
 }
 

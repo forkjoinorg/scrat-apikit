@@ -1,0 +1,24 @@
+{
+  "name": "",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "precustomPublish": "npm run build",
+    "customPublish": "cp package.json dist/package.json && cp .npmrc dist/.npmrc && cd dist && npm publish"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "apikit-core": "^1.0.3"
+  },
+  "publishConfig": {
+    "registry": "https://nexus.billbear.cn/repository/npm/"
+  },
+  "devDependencies": {
+    "typescript": "^3.7.4"
+  }
+}

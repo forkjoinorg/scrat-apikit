@@ -1,0 +1,20 @@
+<!--#set(EnumInfo m)-->
+<!--#set(EnumElementInfo ele)-->
+<!--#set(JSEnumWrapper utils)-->
+<!--#set(TypeInfo type)-->
+
+/**
+$!{utils.comment(" * ")}
+ */
+enum $!{utils.distName}{
+<!--#for(ele : m.enumElementInfos)-->
+<!--    #if(ele.comment)-->
+    /**
+$!{utils.formatComment(ele.comment,"     * ")}
+     */
+<!--    #end-->
+    $!{ele.name},
+<!--#end-->
+}
+
+export default $!{utils.distName};

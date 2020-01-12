@@ -1,0 +1,68 @@
+<!--#set(ApiInfo m)-->
+<!--#set(JSApiWrapper utils)-->
+<!--#set(TypeInfo type)-->
+<!--#set(ApiMethodInfo method)-->
+<!--#set(ApiMethodParamInfo param)-->
+$!{utils.imports}
+
+/**
+$!{utils.comment(" * ")}
+*/
+export class $!{utils.name} extends AbstractApi {
+
+<!--#for(method : m.methodInfos)-->
+
+##下面是异步带tag
+   /**
+$!{utils.formatBaseComment(method.comment,"     * ")}
+    *
+$!{utils.requestComment(method,"     * ")}
+    */
+    $!{method.name}($!{utils.params(method,true)}):Promise<$!{utils.resultTypeString(method)}>{
+<!--#for(param : method.params)-->
+<!--    #if(!param.isRequired)-->
+        let ${param.getName()}:${utils.toTypeString(param.getTypeInfo(), true)} = ${param.getName()}Opt || $!{utils.toValue(param)};
+<!--    #end-->
+<!--#end-->
+<!--    #if(method.isHasPart)-->
+        let _form = new FormData();
+<!--    #else-->
+        let _form = {};
+<!--    #end-->
+
+        let _headers = {};
+        let _pathVars = {};
+
+<!--    #for(param : method.params)-->
+<!--        #if(param.isPathVariable)-->
+        _pathVars["$!{param.getAnnotationName()}"] = $!{param.getName()};
+<!--        #else(param.isFormParam)-->
+        _form = Object.assign(form, $!{param.getName()});
+<!--        #else(param.isRequestParam || param.isRequestPartFile || param.isRequestPartField)-->
+        _form.append("$!{param.getAnnotationName()}", $!{param.getName()});
+<!--        #else(param.isRequestHeader)-->
+        _headers["$!{param.getAnnotationName()}"] = $!{param.getName()};
+<!--        #end-->
+<!--    #end-->
+        return super._fetch({
+            serviceId: "$!{utils.jsPackageName}",
+            method: "$!{method.type.name()}",
+            url: "$!{method.url}",
+            pathVars: _pathVars,
+            headers: _headers,
+            tag: "$!{utils.fieldName}",
+<!--    #if(method.isHasPart)-->
+            formData: _form,
+            type: RequestType.MULTIPART,
+<!--    #else-->
+            formObject: _form,
+            type: RequestType.FORM,
+<!--    #end-->
+            isAccount: $!{method.account}
+        });
+    }
+##循环结束
+<!--#end-->
+}
+
+export default new $!{utils.name}();

@@ -5,10 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
-import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
-import org.forkjoin.scrat.apikit.tool.info.ApiMethodInfo;
-import org.forkjoin.scrat.apikit.tool.info.ApiMethodParamInfo;
-import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
+import org.forkjoin.scrat.apikit.tool.info.*;
 import org.forkjoin.scrat.apikit.tool.utils.NameUtils;
 import reactor.core.publisher.Flux;
 
@@ -40,7 +37,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 
 
     public String getFieldName() {
-        return  NameUtils.toFieldName(getName());
+        return NameUtils.toFieldName(getName());
     }
 
     public String getImports() {
@@ -53,20 +50,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
         int myLevel = getMyLevel();
         String imports = isModel ? getMethodImports() : "";
         return imports +
-                "\nimport {AbstractApi} from 'apikit-core'\n" +
-                "\nimport {requestGroupImpi} from 'apikit-core'\n";
-
-    }
-
-
-    public String getEs5Imports() {
-        //自己的目录级别
-        int myLevel = getMyLevel();
-        return "var _AbstractApi2 = require(\"apikit-core/lib/AbstractApi\");\n" +
-                "var _AbstractApi3 = _interopRequireDefault(_AbstractApi2);\n" +
-                "\n" +
-                "var _RequestGroupImpi = require(\"apikit-core/lib/RequestGroupImpi\");\n" +
-                "var _RequestGroupImpi2 = _interopRequireDefault(_RequestGroupImpi);\n";
+                "\nimport {AbstractApi, requestGroupImpl, RequestType} from 'apikit-core'\n";
     }
 
 
@@ -80,12 +64,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
     }
 
     public String getMethodImports() {
-        StringBuilder sb = new StringBuilder();
-
-        int myLevel = getMyLevel();
-
-
-        Flux
+        return Flux
                 .fromIterable(moduleInfo.getMethodInfos())
                 .flatMapIterable(m -> {
                     List<TypeInfo> types = new ArrayList<>();
@@ -98,27 +77,12 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
                     findTypes(type, types);
                     return types;
                 })
-                .filter(typeInfo -> typeInfo.getType().equals(TypeInfo.Type.OTHER))
-                .filter(typeInfo -> !typeInfo.isCollection())
-                .filter(typeInfo -> !typeInfo.isGeneric())
-                .map(TypeInfo::getFullName)
+                .filter(this::filterType)
+                .map(ClassInfo::new)
                 .distinct()
                 .sort(Comparator.naturalOrder())
-                .filter(fullName -> context.getMessageWrapper(fullName) != null)
-                .map(fullName -> context.getMessageWrapper(fullName))
-                .filter(w -> !w.getDistPackage().equals(getDistPackage()))
-                .doOnNext(r -> {
-                    String name = r.getDistName();
-                    sb.append("import ")
-                            .append(name)
-                            .append(" from './")
-                            .append(StringUtils.repeat("../", myLevel))
-                            .append(r.getDistPackage().replace(".", "/")).append('/').append(name).append("'\n").toString();
-                })
-                .collectList()
-                .block();
-
-        return sb.toString();
+                .flatMapIterable(this::toImports)
+                .collect(Collectors.joining()).block();
     }
 
 
@@ -149,23 +113,23 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
      *
      */
     public String requestComment(ApiMethodInfo method, String start) {
-        StringBuilder sb = new StringBuilder(start);
+        StringBuilder sb = new StringBuilder();
 
         Map<String, ApiMethodParamInfo> paramMap = method
                 .getParams()
                 .stream()
                 .collect(Collectors.toMap(ApiMethodParamInfo::getName, r -> r));
 
-        if(method.getComment() != null){
+        if (method.getComment() != null) {
             List<List<String>> param = method.getComment().get("@param");
-            if(CollectionUtils.isNotEmpty(param)){
-                param.stream().filter(r->r.size()>1).forEach(list->{
+            if (CollectionUtils.isNotEmpty(param)) {
+                param.stream().filter(r -> r.size() > 1).forEach(list -> {
                     ApiMethodParamInfo methodParamInfo = paramMap.get(list.get(0));
-                    if(methodParamInfo != null){
+                    if (methodParamInfo != null) {
                         sb.append(start).append("@param ")
                                 .append(list.get(0))
                                 .append(" ")
-                                .append(list.size()>1? String.join(" ", list.subList(1, list.size())) :"")
+                                .append(list.size() > 1 ? String.join(" ", list.subList(1, list.size())) : "")
                                 .append("\n");
                     }
                 });
@@ -190,16 +154,20 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
         StringBuilder sb = new StringBuilder();
         ArrayList<ApiMethodParamInfo> params = method.getParams();
         for (int i = 0; i < params.size(); i++) {
-            ApiMethodParamInfo attributeInfo = params.get(i);
-            if (attributeInfo.isFormParam() || attributeInfo.isPathVariable()) {
-                if (sb.length() > 0) {
-                    sb.append(", ");
-                }
-                sb.append(attributeInfo.getName());
-                if (isType) {
-                    sb.append(":");
-                    sb.append(toTypeString(attributeInfo.getTypeInfo()));
-                }
+            ApiMethodParamInfo paramInfo = params.get(i);
+
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            if (paramInfo.isRequired()) {
+                sb.append(paramInfo.getName());
+                sb.append(": ");
+                sb.append(toTypeString(paramInfo.getTypeInfo(), true));
+            } else {
+                //Optional<String> paramOpt
+                sb.append(paramInfo.getName());
+                sb.append("Opt?: ");
+                sb.append(toTypeString(paramInfo.getTypeInfo(), true));
             }
         }
         return sb.toString();
@@ -215,7 +183,39 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 
     public String resultTypeString(ApiMethodInfo method) {
         String returnType = toTypeString(method.getResultType());
-        return StringEscapeUtils.escapeHtml4(returnType);
+        return returnType;
+    }
+
+    public String toValue(ApiMethodParamInfo paramInfo) {
+        TypeInfo typeInfo = paramInfo.getTypeInfo();
+        String escapeJava = StringEscapeUtils.escapeEcmaScript(paramInfo.getDefaultValue());
+        if (paramInfo.getDefaultValue() == null) {
+            return "null";
+        }
+
+        TypeInfo.Type type = typeInfo.getType();
+
+        switch (type) {
+            case BYTE:
+            case SHORT:
+            case INT:
+            case LONG:
+            case DOUBLE:
+            case FLOAT:
+            case BOOLEAN: {
+                return escapeJava;
+            }
+            case STRING: {
+                return "\"" + escapeJava + "\"";
+            }
+            case DATE: {
+                // <T> T parseDate(String str,Class<T> cls) throws IOException;
+                return "super._parseDate(\"" + escapeJava + "\", Date.class)";
+            }
+            default: {
+                throw new RuntimeException("不支持的类型" + typeInfo);
+            }
+        }
     }
 //
 //    private void resultTypeString(StringBuilder sb, TypeInfo resultType) {

@@ -184,7 +184,13 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                                     if (fieldComment == null) {
                                         fieldComment = j.getMethodComment(method.getName());
                                         if (fieldComment == null) {
-                                            fieldComment = j.getMethodComment(propertyDescriptor.getWriteMethod().getName());
+                                            Method commentMethod = propertyDescriptor.getWriteMethod();
+                                            if(commentMethod == null){
+                                                commentMethod = propertyDescriptor.getReadMethod();
+                                            }
+                                            if(commentMethod != null){
+                                                fieldComment = j.getMethodComment(commentMethod.getName());
+                                            }
                                         }
                                     }
                                     if (fieldComment != null) {

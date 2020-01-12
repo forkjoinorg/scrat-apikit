@@ -13,7 +13,7 @@ import java.io.File;
 /**
  *
  */
-public abstract class AbstractJavaGeneratorAbstract extends AbstractHttlGenerator {
+public abstract class AbstractJavaGenerator extends AbstractHttlGenerator {
     protected File getFileName(BuilderWrapper utils) {
         return Utils.packToPath(outPath, utils.getPack(), utils.getName(), ".java");
     }
@@ -46,7 +46,7 @@ public abstract class AbstractJavaGeneratorAbstract extends AbstractHttlGenerato
     }
 
     @Override
-    protected JavaMessageWrapper createMessageWarpper(MessageInfo messageInfo, String distPackage, String distName) {
+    protected JavaMessageWrapper createMessageWrapper(MessageInfo messageInfo, String distPackage, String distName) {
         JavaMessageWrapper javaMessageWrapper = new JavaMessageWrapper(context, messageInfo, rootPackage);
         javaMessageWrapper.setDistPackage(distPackage);
         javaMessageWrapper.setDistName(distName);
@@ -55,11 +55,10 @@ public abstract class AbstractJavaGeneratorAbstract extends AbstractHttlGenerato
 
 
     @Override
-    protected BuilderWrapper<EnumInfo> createEnumWarpper(EnumInfo enumInfo, String distPackage, String distName) {
+    protected BuilderWrapper<EnumInfo> createEnumWrapper(EnumInfo enumInfo, String distPackage, String distName) {
         JavaEnumWrapper javaEnumWrapper = new JavaEnumWrapper(context, enumInfo, rootPackage);
         javaEnumWrapper.setDistPackage(distPackage);
         javaEnumWrapper.setDistName(distName);
         return javaEnumWrapper;
     }
-
 }

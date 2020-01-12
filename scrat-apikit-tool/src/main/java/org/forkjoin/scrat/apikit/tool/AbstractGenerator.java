@@ -66,7 +66,7 @@ public abstract class AbstractGenerator extends AbstractFileGenerator {
                     String distName = messageNameMapper.apply(nameSet, messageInfo.getPackageName(), messageInfo.getName());
                     nameSet.add(distName);
 
-                    BuilderWrapper<MessageInfo> messageWarpper = createMessageWarpper(messageInfo, distPackage, distName);
+                    BuilderWrapper<MessageInfo> messageWarpper = createMessageWrapper(messageInfo, distPackage, distName);
                     if (CollectionUtils.isNotEmpty(filterList)) {
                         messageWarpper.setFilterList(filterList);
                     }
@@ -100,7 +100,7 @@ public abstract class AbstractGenerator extends AbstractFileGenerator {
                     String distName = messageNameMapper.apply(nameSet, enumInfo.getPackageName(), enumInfo.getName());
                     nameSet.add(distName);
 
-                    BuilderWrapper<EnumInfo> enumWarpper = createEnumWarpper(enumInfo, distPackage, distName);
+                    BuilderWrapper<EnumInfo> enumWarpper = createEnumWrapper(enumInfo, distPackage, distName);
                     if (CollectionUtils.isNotEmpty(filterList)) {
                         enumWarpper.setFilterList(filterList);
                     }
@@ -158,9 +158,9 @@ public abstract class AbstractGenerator extends AbstractFileGenerator {
         this.filterList = filterList;
     }
 
-    protected abstract BuilderWrapper<MessageInfo> createMessageWarpper(MessageInfo messageInfo, String distPackage, String distName);
+    protected abstract BuilderWrapper<MessageInfo> createMessageWrapper(MessageInfo messageInfo, String distPackage, String distName);
 
-    protected abstract BuilderWrapper<EnumInfo> createEnumWarpper(EnumInfo enumInfo, String distPackage, String distName);
+    protected abstract BuilderWrapper<EnumInfo> createEnumWrapper(EnumInfo enumInfo, String distPackage, String distName);
 
     public abstract void generateApi(ApiInfo apiInfo) throws Exception;
 

@@ -150,20 +150,21 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
     public String toValue(ApiMethodParamInfo paramInfo) {
         TypeInfo typeInfo = paramInfo.getTypeInfo();
         String escapeJava = StringEscapeUtils.escapeJava(paramInfo.getDefaultValue());
-        if(paramInfo.getDefaultValue() == null){
+        if (paramInfo.getDefaultValue() == null) {
             return "null";
         }
 
         TypeInfo.Type type = typeInfo.getType();
 
         switch (type) {
-            case LONG:
-            case FLOAT:
+            case BYTE:
             case SHORT:
+            case INT:
+            case LONG:
             case DOUBLE:
-            case BOOLEAN:
-            case INT: {
-                return type.getName() + "valueOf(\"" + escapeJava + "\")";
+            case FLOAT:
+            case BOOLEAN: {
+                return type.getName() + ".valueOf(\"" + escapeJava + "\")";
             }
             case STRING: {
                 return "\"" + escapeJava + "\"";

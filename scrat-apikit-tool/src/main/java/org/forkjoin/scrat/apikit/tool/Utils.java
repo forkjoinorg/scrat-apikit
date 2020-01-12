@@ -6,6 +6,13 @@ import java.io.File;
 
 public final class Utils {
 
+    public static File packToPath(String path, String child, String packname, String name, String suffix) {
+        File r = new File(path, child);
+        File f = new File(r, packname.replace(".", File.separator));
+        f = new File(f, name + suffix);
+        return f;
+    }
+
     public static File packToPath(String path, String packname, String name, String suffix) {
         File f = new File(path, packname.replace(".", File.separator));
         f = new File(f, name + suffix);

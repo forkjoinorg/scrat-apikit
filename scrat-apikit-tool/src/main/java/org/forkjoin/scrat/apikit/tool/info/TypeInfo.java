@@ -2,6 +2,7 @@ package org.forkjoin.scrat.apikit.tool.info;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 import org.slf4j.Logger;
@@ -35,6 +36,8 @@ public class TypeInfo implements Cloneable {
      * 是否是泛型的变量类型
      */
     private boolean isGeneric = false;
+    private boolean generic = true;
+    private int typeParametersSize = 0;
     private boolean isEnum = false;
 
     private TypeInfo() {
@@ -48,6 +51,7 @@ public class TypeInfo implements Cloneable {
             List<TypeInfo> typeArguments,
             boolean isInside,
             boolean isGeneric,
+            int typeParametersSize,
             boolean isEnum
     ) {
         this.type = type;
@@ -57,6 +61,7 @@ public class TypeInfo implements Cloneable {
         this.typeArguments = typeArguments;
         this.isInside = isInside;
         this.isGeneric = isGeneric;
+        this.typeParametersSize = typeParametersSize;
         this.isEnum = isEnum;
     }
 
@@ -124,7 +129,7 @@ public class TypeInfo implements Cloneable {
                 Type t = Type.form(cls);
                 if (!t.isBaseType()) {
                     return new TypeInfo(
-                            t, cls.getPackage().getName(), cls.getSimpleName(), false, new ArrayList<>(), false, false, cls.isEnum()
+                            t, cls.getPackage().getName(), cls.getSimpleName(), false, new ArrayList<>(), false, false, cls.getTypeParameters().length, cls.isEnum()
                     );
                 } else {
                     return TypeInfo.formBaseType(cls.getName(), false);
@@ -301,6 +306,8 @@ public class TypeInfo implements Cloneable {
         }
     }
 
+
+
     public boolean isEnum() {
         return isEnum;
     }
@@ -323,6 +330,14 @@ public class TypeInfo implements Cloneable {
             }
         }
         return null;
+    }
+
+    public int getTypeParametersSize() {
+        return typeParametersSize;
+    }
+
+    public void setTypeParametersSize(int typeParametersSize) {
+        this.typeParametersSize = typeParametersSize;
     }
 
     /**
