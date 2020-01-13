@@ -16,6 +16,6 @@ import java.util.Map.Entry;
  */
 public interface ApiAdapter {
     <T> Mono<T> request(RequestInfo requestInfo);
-    <T> T parseDate(String str,Class<T> cls) throws IOException;
+    <T> T parseDate(String str,Class<T> cls);
     void close() throws IOException;
 }
