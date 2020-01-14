@@ -1,4 +1,4 @@
-package org.forkjoin.scrat.apikit.example;
+package org.forkjoin.scrat.apikit.example.form.child;
 
 import org.forkjoin.TestModel;
 import org.forkjoin.scrat.apikit.example.form.ValidForm;
@@ -12,19 +12,16 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Date;
 
 @RestController
-@RequestMapping("/test")
-public class TestService {
+@RequestMapping("/testService1")
+public class TestService1 {
 
     @RequestMapping("/upload")
     public StatusType upload(
             @RequestPart("file1") Mono<FilePart> file ,
-            @RequestPart("file2") Mono<FilePart[]> file2 ,
-            @RequestPart("file3") Mono<FilePart[]> file3 ,
-            @RequestPart(value = "file2", required = false) Mono<FormFieldPart[]> formFieldPart
+            @RequestPart(value = "file2", required = false) Mono<FormFieldPart> formFieldPart
     ) {
         return StatusType.INIT;
     }
@@ -52,11 +49,6 @@ public class TestService {
             ValidForm form3,
             @PathVariable(name = "sb1", required = false) String sb,
             @RequestParam(name = "param1", defaultValue = "param1v", required = false) String param,
-            @RequestParam(name = "param2", defaultValue = "1", required = false) Integer param2,
-            @RequestParam(name = "param3", defaultValue = "1", required = false) Double param3,
-            @RequestParam(name = "param4", defaultValue = "true", required = false) Boolean param4,
-            @RequestParam(name = "param5", defaultValue = "1", required = false) Float param5,
-            @RequestParam(name = "date", defaultValue = "2010-01-01", required = false) LocalDate date,
             @RequestHeader(name = "header1", defaultValue = "header1v", required = false) String header
     ) {
         return null;

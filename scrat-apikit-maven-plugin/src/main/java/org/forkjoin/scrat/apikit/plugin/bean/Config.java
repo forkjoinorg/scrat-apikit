@@ -1,51 +1,53 @@
 package org.forkjoin.scrat.apikit.plugin.bean;
 
+import org.apache.maven.plugins.annotations.Parameter;
 import org.forkjoin.scrat.apikit.tool.info.ClassInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Task {
-    protected String version;
-    private boolean clean;
+public class Config {
+
+    private GitInfo git;
+
+    @Parameter
+    private List<ClassInfo> javaFilterList;
+    private List<ClassInfo> javaScriptFilterList;
+
+    private Boolean clean;
     private List<String> cleanExcludes;
     private String nameMapperSource;
     private String nameMapperDist;
-    private String outPath;
 
-    public String getVersion() {
-        return version;
+
+    public GitInfo getGit() {
+        return git;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    public void setGit(GitInfo git) {
+        this.git = git;
     }
 
-
-
-    protected List<ClassInfo> filterList = new ArrayList<>();
-
-    public String getOutPath() {
-        return outPath;
+    public List<ClassInfo> getJavaFilterList() {
+        return javaFilterList;
     }
 
-    public void setOutPath(String outPath) {
-        this.outPath = outPath;
+    public void setJavaFilterList(List<ClassInfo> javaFilterList) {
+        this.javaFilterList = javaFilterList;
     }
 
-    public List<ClassInfo> getFilterList() {
-        return filterList;
+    public List<ClassInfo> getJavaScriptFilterList() {
+        return javaScriptFilterList;
     }
 
-    public void setFilterList(List<ClassInfo> filterList) {
-        this.filterList = filterList;
+    public void setJavaScriptFilterList(List<ClassInfo> javaScriptFilterList) {
+        this.javaScriptFilterList = javaScriptFilterList;
     }
 
-    public boolean isClean() {
+    public Boolean getClean() {
         return clean;
     }
 
-    public void setClean(boolean clean) {
+    public void setClean(Boolean clean) {
         this.clean = clean;
     }
 
@@ -75,14 +77,14 @@ public abstract class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
-                "version='" + version + '\'' +
+        return "Config{" +
+                "git=" + git +
+                ", javaFilterList=" + javaFilterList +
+                ", javaScriptFilterList=" + javaScriptFilterList +
                 ", clean=" + clean +
                 ", cleanExcludes=" + cleanExcludes +
                 ", nameMapperSource='" + nameMapperSource + '\'' +
                 ", nameMapperDist='" + nameMapperDist + '\'' +
-                ", outPath='" + outPath + '\'' +
-                ", filterList=" + filterList +
                 '}';
     }
 }

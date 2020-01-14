@@ -4,7 +4,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
-import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
+import org.forkjoin.scrat.apikit.tool.generator.NameMapper;
 import org.forkjoin.scrat.apikit.tool.info.*;
 import org.forkjoin.scrat.apikit.tool.utils.NameUtils;
 import reactor.core.publisher.Flux;
@@ -21,18 +21,18 @@ import java.util.stream.Collectors;
 public class JSApiWrapper extends JSWrapper<ApiInfo> {
     private String version;
     private String jsPackageName;
-    private NameMaper apiNameMaper;
+    private NameMapper apiNameMapper;
 
-    public JSApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, String jsPackageName, NameMaper apiNameMaper) {
+    public JSApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, String jsPackageName, NameMapper apiNameMapper) {
         super(context, moduleInfo, rootPackage);
         this.jsPackageName = jsPackageName;
-        this.apiNameMaper = apiNameMaper;
+        this.apiNameMapper = apiNameMapper;
     }
 
 
     @Override
     public String getName() {
-        return apiNameMaper.apply(super.getName());
+        return apiNameMapper.apply(super.getName());
     }
 
 
@@ -138,9 +138,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 
         method.getAllTypes().forEach(typeInfo -> {
             sb.append(start).append("@see ").append(
-                    StringEscapeUtils.escapeHtml4(
-                            toTypeString(typeInfo, false)
-                    )
+                    toTypeString(typeInfo, false)
             ).append("\n");
         });
         return StringUtils.stripEnd(sb.toString(), null);
@@ -153,22 +151,27 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
     public String params(ApiMethodInfo method, boolean isType) {
         StringBuilder sb = new StringBuilder();
         ArrayList<ApiMethodParamInfo> params = method.getParams();
-        for (int i = 0; i < params.size(); i++) {
-            ApiMethodParamInfo paramInfo = params.get(i);
+        if (CollectionUtils.isNotEmpty(params)) {
+            sb.append('{');
+            for (int i = 0; i < params.size(); i++) {
+                ApiMethodParamInfo paramInfo = params.get(i);
 
-            if (sb.length() > 0) {
-                sb.append(", ");
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                if (paramInfo.isRequired()) {
+                    sb.append(paramInfo.getName());
+//                    sb.append(": ");
+//                    sb.append(toTypeString(paramInfo.getTypeInfo(), true));
+                } else {
+                    //Optional<String> paramOpt
+                    sb.append(paramInfo.getName());
+                    sb.append("= ");
+                    sb.append(toValue(paramInfo));
+//                    sb.append(toTypeString(paramInfo.getTypeInfo(), true));
+                }
             }
-            if (paramInfo.isRequired()) {
-                sb.append(paramInfo.getName());
-                sb.append(": ");
-                sb.append(toTypeString(paramInfo.getTypeInfo(), true));
-            } else {
-                //Optional<String> paramOpt
-                sb.append(paramInfo.getName());
-                sb.append("Opt?: ");
-                sb.append(toTypeString(paramInfo.getTypeInfo(), true));
-            }
+            sb.append("}: " + method.getUpperName() + "Args");
         }
         return sb.toString();
     }
@@ -210,7 +213,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
             }
             case DATE: {
                 // <T> T parseDate(String str,Class<T> cls) throws IOException;
-                return "super._parseDate(\"" + escapeJava + "\", Date.class)";
+                return "super._parseDate(\"" + escapeJava + "\")";
             }
             default: {
                 throw new RuntimeException("不支持的类型" + typeInfo);

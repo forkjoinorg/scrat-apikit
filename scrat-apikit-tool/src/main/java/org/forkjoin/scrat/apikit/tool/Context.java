@@ -43,6 +43,10 @@ public class Context {
         fullNameEnumMap.put(key.getFullName(), enumInfo);
     }
 
+    public boolean isEmpty() {
+        return enumMap.isEmpty() && messageMap.isEmpty() && apis.getAll().isEmpty();
+    }
+
     public String getPath() {
         return path;
     }

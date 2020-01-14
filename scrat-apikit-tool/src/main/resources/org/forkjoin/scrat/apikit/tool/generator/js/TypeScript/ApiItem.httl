@@ -5,6 +5,21 @@
 <!--#set(ApiMethodParamInfo param)-->
 $!{utils.imports}
 
+
+<!--#for(method : m.methodInfos)-->
+<!--    #if(method.params.length>0)-->
+export interface $!{method.upperName}Args{
+<!--        #for(param : method.params)-->
+<!--            #if(param.isRequired)-->
+    ${param.getName()}:${utils.toTypeString(param.getTypeInfo(), true)};
+<!--            #else-->
+    ${param.getName()}?:${utils.toTypeString(param.getTypeInfo(), true)};
+<!--            #end-->
+<!--        #end-->
+}
+<!--    #end-->
+<!--#end-->
+
 /**
 $!{utils.comment(" * ")}
 */
@@ -19,11 +34,6 @@ $!{utils.formatBaseComment(method.comment,"     * ")}
 $!{utils.requestComment(method,"     * ")}
     */
     $!{method.name}($!{utils.params(method,true)}):Promise<$!{utils.resultTypeString(method)}>{
-<!--#for(param : method.params)-->
-<!--    #if(!param.isRequired)-->
-        let ${param.getName()}:${utils.toTypeString(param.getTypeInfo(), true)} = ${param.getName()}Opt || $!{utils.toValue(param)};
-<!--    #end-->
-<!--#end-->
 <!--    #if(method.isHasPart)-->
         let _form = new FormData();
 <!--    #else-->
@@ -37,9 +47,17 @@ $!{utils.requestComment(method,"     * ")}
 <!--        #if(param.isPathVariable)-->
         _pathVars["$!{param.getAnnotationName()}"] = $!{param.getName()};
 <!--        #else(param.isFormParam)-->
-        _form = Object.assign(form, $!{param.getName()});
-<!--        #else(param.isRequestParam || param.isRequestPartFile || param.isRequestPartField)-->
+        _form = Object.assign(_form, $!{param.getName()});
+<!--        #else(param.isRequestParam)-->
+        _form["$!{param.getAnnotationName()}"] = $!{param.getName()};
+<!--        #else(param.isRequestPartFile || param.isRequestPartField)-->
+<!--    #if(param.typeInfo.isArray)-->
+        for (let i = 0; i <$!{param.getName()}.length; i++) {
+            _form.append("$!{param.getAnnotationName()}", $!{param.getName()}[i]);
+        }
+<!--    #else-->
         _form.append("$!{param.getAnnotationName()}", $!{param.getName()});
+<!--    #end-->
 <!--        #else(param.isRequestHeader)-->
         _headers["$!{param.getAnnotationName()}"] = $!{param.getName()};
 <!--        #end-->
@@ -64,5 +82,6 @@ $!{utils.requestComment(method,"     * ")}
 ##循环结束
 <!--#end-->
 }
-
-export default new $!{utils.name}();
+const $!{utils.fieldName} = new $!{utils.name}();
+$!{utils.fieldName}._init(requestGroupImpl);
+export default $!{utils.fieldName};

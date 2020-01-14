@@ -88,6 +88,10 @@ public class Manager {
         this.srcPaths = srcPaths;
     }
 
+    public Context getContext() {
+        return context;
+    }
+
     @Override
     public String toString() {
         return "Manager{" +

@@ -2,9 +2,9 @@ package org.forkjoin.scrat.apikit.build;
 
 
 import org.forkjoin.scrat.apikit.tool.*;
-import org.forkjoin.scrat.apikit.tool.generator.JavaClientGeneratorAbstract;
-import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGeneratorAbstract;
-import org.forkjoin.scrat.apikit.tool.generator.PatternNameMaper;
+import org.forkjoin.scrat.apikit.tool.generator.JavaClientGenerator;
+import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGenerator;
+import org.forkjoin.scrat.apikit.tool.generator.PatternNameMapper;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathApiAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathEnumAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathMessageAnalyse;
@@ -65,17 +65,17 @@ public class ApiBuilderMain implements CommandLineRunner {
         manager.analyse();
 
         {
-            JavaClientGeneratorAbstract generator = new JavaClientGeneratorAbstract();
+            JavaClientGenerator generator = new JavaClientGenerator();
             generator.setOutPath(javaClientDir.getAbsolutePath());
-            generator.setApiNameMaper(new PatternNameMaper(
+            generator.setApiNameMaper(new PatternNameMapper(
                     "(?<name>.*)Service", "${name}Api"
             ));
             generator.setRootPackage("org.forkjoin.client.apikit.example.client");
             manager.generate(generator);
         }
         {
-            JavaScriptGeneratorAbstract generator = new JavaScriptGeneratorAbstract("test");
-            generator.setType(JSWrapper.Type.ES6);
+            JavaScriptGenerator generator = new JavaScriptGenerator("test");
+            generator.setType(JSWrapper.Type.TypeScript);
             generator.setOutPath(jsClientDir.getAbsolutePath());
             generator.setVersion("2");
             manager.generate(generator);

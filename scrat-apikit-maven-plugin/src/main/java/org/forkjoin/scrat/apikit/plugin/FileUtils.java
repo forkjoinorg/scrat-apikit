@@ -18,35 +18,23 @@ public class FileUtils {
         }
     }
 
-    public static void deleteDirectory(File directory, List<String> cleanExcludes, Log log) throws IOException {
+    public static void cleanDirectory(final File directory, List<String> cleanExcludes, Log log) throws IOException {
         if (directory.exists()) {
+            final File[] files = verifiedListFiles(directory);
             if (!isSymlink(directory)) {
-                cleanDirectory(directory, cleanExcludes, log);
-            }
-            if (!checkExclude(directory, cleanExcludes)) {
-                log.info("Delete dir:" + directory);
-                if (!directory.delete()) {
-                    String message = "Unable to delete directory " + directory + ".";
-                    throw new IOException(message);
+                IOException exception = null;
+                for (final File file : files) {
+                    try {
+                        forceDelete(file, cleanExcludes, log);
+                    } catch (final IOException ioe) {
+                        exception = ioe;
+                    }
+                }
+
+                if (null != exception) {
+                    throw exception;
                 }
             }
-        }
-    }
-
-    public static void cleanDirectory(final File directory, List<String> cleanExcludes, Log log) throws IOException {
-        final File[] files = verifiedListFiles(directory);
-
-        IOException exception = null;
-        for (final File file : files) {
-            try {
-                forceDelete(file, cleanExcludes, log);
-            } catch (final IOException ioe) {
-                exception = ioe;
-            }
-        }
-
-        if (null != exception) {
-            throw exception;
         }
     }
 
@@ -82,7 +70,7 @@ public class FileUtils {
             return;
         }
         if (file.isDirectory()) {
-            deleteDirectory(file, cleanExcludes, log);
+            cleanDirectory(file, cleanExcludes, log);
         } else {
             final boolean filePresent = file.exists();
             log.info("Delete file:" + file);

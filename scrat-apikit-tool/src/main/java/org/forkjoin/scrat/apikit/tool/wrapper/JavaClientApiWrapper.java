@@ -2,7 +2,7 @@ package org.forkjoin.scrat.apikit.tool.wrapper;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
-import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
+import org.forkjoin.scrat.apikit.tool.generator.NameMapper;
 import org.forkjoin.scrat.apikit.tool.info.*;
 import reactor.core.publisher.Flux;
 
@@ -21,8 +21,8 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
 
     private boolean isAnnotations = false;
 
-    public JavaClientApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, NameMaper apiNameMaper) {
-        super(context, moduleInfo, rootPackage, apiNameMaper);
+    public JavaClientApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, NameMapper apiNameMapper) {
+        super(context, moduleInfo, rootPackage, apiNameMapper);
     }
 
 
@@ -138,7 +138,7 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
             } else {
                 //Optional<String> paramOpt
                 sb.append("Optional<");
-                sb.append(toJavaTypeString(paramInfo.getTypeInfo(), false, true));
+                sb.append(toJavaTypeString(paramInfo.getTypeInfo(), true, true));
                 sb.append("> ");
                 sb.append(paramInfo.getName());
                 sb.append("Opt");

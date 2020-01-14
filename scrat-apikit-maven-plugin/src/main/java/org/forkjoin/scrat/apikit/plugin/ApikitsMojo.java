@@ -1,5 +1,7 @@
 package org.forkjoin.scrat.apikit.plugin;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -8,9 +10,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.forkjoin.scrat.apikit.plugin.bean.Config;
 import org.forkjoin.scrat.apikit.plugin.bean.GitInfo;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
 import org.forkjoin.scrat.apikit.plugin.bean.Task;
+import org.forkjoin.scrat.apikit.tool.info.ClassInfo;
 import reactor.core.publisher.Hooks;
 
 import java.io.File;
@@ -34,7 +38,8 @@ public class ApikitsMojo extends AbstractMojo {
     private List<Group> groups;
 
     @Parameter
-    private GitInfo git;
+    private Config config;
+
 
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     private MavenSession session;
@@ -57,7 +62,7 @@ public class ApikitsMojo extends AbstractMojo {
         }
         String sourcePath = compileSourceRoots[0];
 
-        if (git != null) {
+        if (config.getGit() != null) {
             gitGenerate(project, compileSourceRoots, sourcePath);
         } else {
             generate(project, compileSourceRoots, sourcePath);
@@ -67,54 +72,73 @@ public class ApikitsMojo extends AbstractMojo {
     private void gitGenerate(MavenProject project, String[] compileSourceRoots, String sourcePath) {
         try {
             Path tempDir = Files.createTempDirectory("apikit-git");
-            getLog().info("git clone 成功");
-            String dir = tempDir.toAbsolutePath().toString();
-            getLog().info("git临时目录:" + dir);
+            try {
+                getLog().info("git clone 成功");
+                String dir = tempDir.toAbsolutePath().toString();
+                getLog().info("git临时目录:" + dir);
 
 //            File src = new File(tempDir.toFile(), srcUri);
 
-            getLog().info("开始git clone" + groups);
+                getLog().info("开始git clone" + groups);
 
-            GitUtils.clone(git.getUrl(), git.getBranch(), dir, getLog());
-            GitUtils.setNameAndEmail(dir, git.getName(), git.getEmail(), getLog());
-            int version = GitUtils.getVersion(dir, getLog());
-            getLog().info("开始git version:" + version);
-            getLog().info("开始执行全部任务" + groups);
+                GitInfo git = config.getGit();
+                GitUtils.clone(git.getUrl(), git.getBranch(), dir, getLog());
+                if (StringUtils.isNotEmpty(git.getName()) && StringUtils.isNotEmpty(git.getName())) {
+                    GitUtils.setNameAndEmail(dir, git.getName(), git.getEmail(), getLog());
+                }
+                int version = GitUtils.getVersion(dir, getLog());
+                getLog().info("开始git version:" + version);
+                getLog().info("开始执行全部任务" + groups);
 
-            for (Group group : groups) {
-                List<Task> tasks = group.getTasks();
-                tasks.forEach(task -> {
-                    String outPath = tempDir.resolve(task.getOutPath()).toAbsolutePath().toString();
-                    task.setOutPath(outPath);
-                    task.setVersion(Integer.toString(version + 1));
-                    if (task.isClean()) {
-                        try {
-                            FileUtils.deleteDirectory(new File(outPath), task.getCleanExcludes() == null
-                                    ? Collections.emptyList() : task.getCleanExcludes(), getLog());
 
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                for (Group group : groups) {
+                    List<Task> tasks = group.getTasks();
+                    tasks.forEach(task -> {
+                        if(StringUtils.isNotEmpty(config.getNameMapperSource())){
+                            task.setNameMapperSource(config.getNameMapperSource());
                         }
-                    }
-                });
-                getLog().info("开始执行第一组" + groups);
+                        if(StringUtils.isNotEmpty(config.getNameMapperDist())){
+                            task.setNameMapperDist(config.getNameMapperDist());
+                        }
+                        if(CollectionUtils.isNotEmpty(config.getCleanExcludes())){
+                            task.setCleanExcludes(config.getCleanExcludes());
+                        }
+                        if(config.getClean() != null && config.getClean()){
+                            task.setClean(config.getClean());
+                        }
+                        String outPath = tempDir.resolve(task.getOutPath()).toAbsolutePath().toString();
+                        task.setOutPath(outPath);
+                        task.setVersion(Integer.toString(version + 1));
+                        if (task.isClean()) {
+                            try {
+                                FileUtils.cleanDirectory(new File(outPath), task.getCleanExcludes() == null
+                                        ? Collections.emptyList() : task.getCleanExcludes(), getLog());
 
-                MavenUtils.generate(project, group, sourcePath, compileSourceRoots, git);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
+                    getLog().info("开始执行第一组" + groups);
 
-                getLog().info("结束第一组" + groups);
+                    MavenUtils.generate(project, group, sourcePath, compileSourceRoots, config);
+
+                    getLog().info("结束第一组" + groups);
+                }
+
+                //开始git 提交
+
+                GitUtils.add(dir, getLog());
+                String message = String.format(commitTemplate, Integer.toString(version));
+                boolean commit = GitUtils.commit(dir, message, getLog());
+                if (commit) {
+                    GitUtils.push(dir, git.getBranch(), getLog());
+                } else {
+                    getLog().info("不需要提交");
+                }
+            } finally {
+                org.apache.commons.io.FileUtils.forceDeleteOnExit(tempDir.toFile());
             }
-
-            //开始git 提交
-
-            GitUtils.add(dir, getLog());
-            String message = String.format(commitTemplate, Integer.toString(version));
-            boolean commit = GitUtils.commit(dir, message, getLog());
-            if(commit){
-                GitUtils.push(dir, git.getBranch(), getLog());
-            }else{
-                getLog().info("不需要提交");
-            }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -128,7 +152,7 @@ public class ApikitsMojo extends AbstractMojo {
             for (Group group : groups) {
                 getLog().info("开始执行第一组" + groups);
 
-                MavenUtils.generate(project, group, sourcePath, compileSourceRoots, git);
+                MavenUtils.generate(project, group, sourcePath, compileSourceRoots, config);
 
                 getLog().info("结束第一组" + groups);
             }

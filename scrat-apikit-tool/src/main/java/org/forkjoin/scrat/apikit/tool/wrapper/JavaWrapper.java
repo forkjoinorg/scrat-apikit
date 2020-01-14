@@ -62,8 +62,8 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
 
         if (CollectionUtils.isNotEmpty(this.filterList)) {
             for (ClassInfo i : filterList) {
-                if (classInfo.equals(i)) {
-                    return Arrays.asList("import ", i.getPackageName(), ".", i.getName(), ";\n");
+                if (i.matchesEquals(classInfo.getPackageName(), classInfo.getName())) {
+                    return Arrays.asList("import ", classInfo.getPackageName(), ".", classInfo.getName(), ";\n");
                 }
             }
         }

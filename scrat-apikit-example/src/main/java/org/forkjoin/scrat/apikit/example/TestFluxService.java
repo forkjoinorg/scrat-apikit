@@ -18,8 +18,8 @@ import javax.validation.Valid;
  * 测试flux
  * 测试flux
  */
-@RestController
-@RequestMapping("/testFlux/")
+//@RestController
+//@RequestMapping("/testFlux/")
 public class TestFluxService {
 
 //    /**

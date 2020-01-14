@@ -1,17 +1,12 @@
 package org.forkjoin.scrat.apikit.tool.wrapper;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
-import org.forkjoin.scrat.apikit.tool.generator.NameMaper;
+import org.forkjoin.scrat.apikit.tool.generator.NameMapper;
 import org.forkjoin.scrat.apikit.tool.info.*;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.http.codec.multipart.FormFieldPart;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,18 +16,18 @@ import java.util.stream.Collectors;
  */
 public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
     private String version;
-    private NameMaper apiNameMaper;
+    private NameMapper apiNameMapper;
 
 
-    public JavaApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, NameMaper apiNameMaper) {
+    public JavaApiWrapper(Context context, ApiInfo moduleInfo, String rootPackage, NameMapper apiNameMapper) {
         super(context, moduleInfo, rootPackage);
-        this.apiNameMaper = apiNameMaper;
+        this.apiNameMapper = apiNameMapper;
 
     }
 
     @Override
     public String getName() {
-        return apiNameMaper.apply(super.getName());
+        return apiNameMapper.apply(super.getName());
     }
 
     public String getVersion() {
@@ -98,9 +93,7 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
 
         method.getAllTypes().forEach(typeInfo -> {
             sb.append(start).append("@see ").append(
-                    StringEscapeUtils.escapeHtml4(
-                            toJavaTypeString(typeInfo, false, true, false)
-                    )
+                    toJavaTypeString(typeInfo, false, true, false)
             ).append("\n");
         });
         return StringUtils.stripEnd(sb.toString(), null);

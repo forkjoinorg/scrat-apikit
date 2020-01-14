@@ -1,6 +1,7 @@
 package org.forkjoin.scrat.apikit.example.form;
 
 import org.forkjoin.TestForm;
+import org.forkjoin.scrat.apikit.example.TestArrayForm;
 import org.forkjoin.scrat.apikit.example.type.StatusType;
 
 public class ObjectForm {

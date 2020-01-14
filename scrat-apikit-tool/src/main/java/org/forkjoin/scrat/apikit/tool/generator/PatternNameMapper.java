@@ -3,7 +3,7 @@ package org.forkjoin.scrat.apikit.tool.generator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PatternNameMaper implements NameMaper {
+public class PatternNameMapper implements NameMapper {
 
     /**
      * A RegExp Pattern that extract needed information from a service ID. Ex :
@@ -17,7 +17,7 @@ public class PatternNameMaper implements NameMaper {
     private String distPattern;
 
 
-    public PatternNameMaper(String sourcePattern, String distPattern) {
+    public PatternNameMapper(String sourcePattern, String distPattern) {
         this.sourcePattern = Pattern.compile(sourcePattern);
         this.distPattern = distPattern;
     }

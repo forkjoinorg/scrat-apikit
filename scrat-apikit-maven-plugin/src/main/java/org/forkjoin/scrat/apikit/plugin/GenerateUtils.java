@@ -7,14 +7,16 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.forkjoin.scrat.apikit.plugin.bean.*;
 import org.forkjoin.scrat.apikit.tool.*;
-import org.forkjoin.scrat.apikit.tool.generator.JavaClientGeneratorAbstract;
-import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGeneratorAbstract;
-import org.forkjoin.scrat.apikit.tool.generator.PatternNameMaper;
+import org.forkjoin.scrat.apikit.tool.generator.JavaClientGenerator;
+import org.forkjoin.scrat.apikit.tool.generator.JavaScriptGenerator;
+import org.forkjoin.scrat.apikit.tool.generator.PatternNameMapper;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathApiAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathEnumAnalyse;
 import org.forkjoin.scrat.apikit.tool.impl.ClassPathMessageAnalyse;
+import org.forkjoin.scrat.apikit.tool.info.ClassInfo;
 import org.forkjoin.scrat.apikit.tool.jgit.GitGenerator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GenerateUtils {
@@ -31,13 +33,13 @@ public class GenerateUtils {
         }
     }
 
-    public static void generate(String groupJson, String gitJson, String sourcePath, String[] srcPaths) {
+    public static void generate(String groupJson, String configJson, String sourcePath, String[] srcPaths) {
         Group group = deserialize(groupJson, Group.class);
-        GitInfo git = gitJson == null ? null : deserialize(gitJson, GitInfo.class);
-        generate(group, git, sourcePath, srcPaths, new SystemStreamLog());
+        Config config = configJson == null ? null : deserialize(configJson, Config.class);
+        generate(group, config, sourcePath, srcPaths, new SystemStreamLog());
     }
 
-    public static void generate(Group group, GitInfo git, String sourcePath, String[] srcPaths, Log log) {
+    public static void generate(Group group, Config config, String sourcePath, String[] srcPaths, Log log) {
         String rootPackage = group.getRootPackage();
         List<Task> tasks = group.getTasks();
         if (CollectionUtils.isEmpty(tasks)) {
@@ -52,11 +54,12 @@ public class GenerateUtils {
         manager.setObjectFactory(objectFactory);
         manager.analyse();
 
-        log.info(
-                "分析结果"
-                        + manager
-        );
+        log.info("分析结果:" + manager);
         try {
+            if (manager.getContext().isEmpty()) {
+                log.info("分析结果为空，不处理");
+                return;
+            }
             for (int i = 0; i < tasks.size(); i++) {
                 Task task = tasks.get(i);
                 log.info(
@@ -77,14 +80,14 @@ public class GenerateUtils {
                     gitGenerator.setGitEmail(gitTask.getAuthorEmail());
                     gitGenerator.setGitName(gitTask.getAuthorName());
 
-                    gitGenerator.setGenerator((AbstractFileGenerator) createGenerator(manager, gitTask.getTask()));
+                    gitGenerator.setGenerator((AbstractFileGenerator) createGenerator(manager, gitTask.getTask(), config));
 
                     gitGenerator.setSrcUri(gitTask.getSrcUri());
                     gitGenerator.setGitBranch(gitTask.getBranch());
                     gitGenerator.setDeleteUris(gitTask.getDeleteUris());
                     manager.generate(gitGenerator);
                 } else {
-                    Generator generator = createGenerator(manager, task);
+                    Generator generator = createGenerator(manager, task, config);
                     manager.generate(generator);
                 }
                 log.info(
@@ -102,35 +105,59 @@ public class GenerateUtils {
         }
     }
 
-    private static Generator createGenerator(Manager manager, Task task) throws Exception {
+    private static Generator createGenerator(Manager manager, Task task, Config config) throws Exception {
         if (task instanceof JavaClientTask) {
             JavaClientTask javaClientTask = (JavaClientTask) task;
-            JavaClientGeneratorAbstract generator = new JavaClientGeneratorAbstract();
+            JavaClientGenerator generator = new JavaClientGenerator();
 
-            if (CollectionUtils.isNotEmpty(task.getFilterList())) {
-                generator.setFilterList(task.getFilterList());
+            List<ClassInfo> allList = new ArrayList<>();
+
+            if(CollectionUtils.isNotEmpty(config.getJavaFilterList())){
+                allList.addAll(config.getJavaFilterList());
             }
 
+            if(CollectionUtils.isNotEmpty(generator.getFilterList())){
+                allList.addAll(generator.getFilterList());
+            }
+
+            if (CollectionUtils.isNotEmpty(task.getFilterList())) {
+                allList.addAll(task.getFilterList());
+            }
+
+            generator.setFilterList(allList);
+
             generator.setOutPath(javaClientTask.getOutPath());
-            generator.setApiNameMaper(new PatternNameMaper(
-                    javaClientTask.getNameMaperSource(), javaClientTask.getNameMaperDist()
+            generator.setApiNameMaper(new PatternNameMapper(
+                    javaClientTask.getNameMapperSource(), javaClientTask.getNameMapperDist()
             ));
             generator.setRootPackage(javaClientTask.getRootPackage());
             return generator;
         } else if (task instanceof JavaScriptTask) {
             JavaScriptTask javaScriptTask = (JavaScriptTask) task;
-            JavaScriptGeneratorAbstract generator = new JavaScriptGeneratorAbstract("test");
+            JavaScriptGenerator generator = new JavaScriptGenerator("test");
+
+            List<ClassInfo> allList = new ArrayList<>();
+
+            if(CollectionUtils.isNotEmpty(config.getJavaScriptFilterList())){
+                allList.addAll(config.getJavaScriptFilterList());
+            }
+
+            if(CollectionUtils.isNotEmpty(generator.getFilterList())){
+                allList.addAll(generator.getFilterList());
+            }
 
             if (CollectionUtils.isNotEmpty(task.getFilterList())) {
-                generator.setFilterList(task.getFilterList());
+                allList.addAll(task.getFilterList());
             }
+
+            generator.setFilterList(allList);
 
             generator.setType(javaScriptTask.getType());
             generator.setOutPath(javaScriptTask.getOutPath());
             generator.setJsPackageName(javaScriptTask.getJsPackageName());
             generator.setVersion("2");
-            generator.setApiNameMaper(new PatternNameMaper(
-                    javaScriptTask.getNameMaperSource(), javaScriptTask.getNameMaperDist()
+            generator.setApiNameMapper(new PatternNameMapper(
+                    javaScriptTask.getNameMapperSource(), javaScriptTask.getNameMapperDist()
             ));
             return generator;
         } else {

@@ -9,7 +9,7 @@ public class RequestInfo {
     private String uri;
     private List<Map.Entry<String, Object>> form;
     private Map<String, Object> uriVariables;
-    private List<Map.Entry<String, String>> header;
+    private List<Map.Entry<String, Object>> header;
     private RequestType requestType;
     private Type type;
     private boolean isAccount;
@@ -31,7 +31,7 @@ public class RequestInfo {
     }
 
 
-    public void addPathVar(String name, String value) {
+    public void addPathVar(String name, Object value) {
         if (uriVariables == null) {
             uriVariables = new HashMap<>();
         }
@@ -39,7 +39,7 @@ public class RequestInfo {
     }
 
 
-    public void addHeader(String name, String value) {
+    public void addHeader(String name, Object value) {
         if (header == null) {
             header = new ArrayList<>();
         }
@@ -78,11 +78,11 @@ public class RequestInfo {
         this.uriVariables = uriVariables;
     }
 
-    public List<Map.Entry<String, String>> getHeader() {
+    public List<Map.Entry<String, Object>> getHeader() {
         return header;
     }
 
-    public void setHeader(List<Map.Entry<String, String>> header) {
+    public void setHeader(List<Map.Entry<String, Object>> header) {
         this.header = header;
     }
 

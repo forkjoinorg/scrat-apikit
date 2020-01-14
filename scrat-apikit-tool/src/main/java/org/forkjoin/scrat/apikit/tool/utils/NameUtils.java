@@ -11,4 +11,12 @@ public class NameUtils {
         }
         return name;
     }
+
+    public static final String toUpperName(String name){
+        if(!name.isEmpty()){
+            char c = name.charAt(0);
+            return Character.toUpperCase(c) + name.substring(1);
+        }
+        return name;
+    }
 }

@@ -1,4 +1,4 @@
-package org.forkjoin.scrat.apikit.example.model;
+package org.forkjoin.scrat.apikit.example.form.child;
 
 import java.util.Arrays;
 import java.util.List;

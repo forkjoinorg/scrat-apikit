@@ -1,9 +1,12 @@
-package org.forkjoin.scrat.apikit.example.form;
+package org.forkjoin.scrat.apikit.example;
+
+import org.forkjoin.scrat.apikit.example.model.ObjectModel;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class TestArrayForm {
+    private ObjectModel objectModel;
     private long[] longValueArray;
     private int[] intValueArray;
     private short[] shortValueArray;
@@ -168,10 +171,19 @@ public class TestArrayForm {
         this.stringValues = stringValues;
     }
 
+    public ObjectModel getObjectModel() {
+        return objectModel;
+    }
+
+    public void setObjectModel(ObjectModel objectModel) {
+        this.objectModel = objectModel;
+    }
+
     @Override
     public String toString() {
-        return "TestArrayModel{" +
-                "longValueArray=" + Arrays.toString(longValueArray) +
+        return "TestArrayForm{" +
+                "objectModel=" + objectModel +
+                ", longValueArray=" + Arrays.toString(longValueArray) +
                 ", intValueArray=" + Arrays.toString(intValueArray) +
                 ", shortValueArray=" + Arrays.toString(shortValueArray) +
                 ", byteValueArray=" + Arrays.toString(byteValueArray) +

@@ -6,6 +6,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
+import org.forkjoin.scrat.apikit.plugin.bean.Config;
 import org.forkjoin.scrat.apikit.plugin.bean.GitInfo;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
 
@@ -27,7 +28,7 @@ public class MavenUtils {
         mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
-    public static void generate(MavenProject project, Group group, String sourcePath, String[] srcPaths, GitInfo git) {
+    public static void generate(MavenProject project, Group group, String sourcePath, String[] srcPaths, Config config) {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             ClassLoader loader = getUrlClassLoader(project);
@@ -44,7 +45,7 @@ public class MavenUtils {
             );
 
             String groupJson = serialize(group);
-            String gitJson = (git == null ? null : serialize(git));
+            String gitJson = (config == null ? null : serialize(config));
 
             /*
              * 切换后续操作的classLoad加载器

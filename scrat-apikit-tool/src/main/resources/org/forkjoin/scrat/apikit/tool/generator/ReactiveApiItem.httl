@@ -39,14 +39,13 @@ public class $!{utils.name} {
    $!{utils.requestComment(method,"    * ")}
      */
     public Mono<$!{utils.resultData(method)}> $!{method.name}($!{utils.params(method)}) {
-
 <!--        #for(param : method.params)-->
 <!--            #if(!param.isRequired)-->
-           ${utils.toJavaTypeString(param.getTypeInfo(), false, true)} ${param.getName()} = ${param.getName()}Opt.orElse($!{utils.toValue(param)});
+           $!{utils.toJavaTypeString(param.getTypeInfo(), false, true)} ${param.getName()} = ${param.getName()}Opt.orElse($!{utils.toValue(param)});
 <!--            #end-->
 <!--        #end-->
 
-            RequestInfo _requestInfo = new  RequestInfo();
+            RequestInfo _requestInfo = new RequestInfo();
             _requestInfo.setMethod("$!{method.type.name()}");
             _requestInfo.setUri("$!{method.url}");
             _requestInfo.setAccount($!{method.account});

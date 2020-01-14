@@ -29,6 +29,9 @@ public class FieldInfo {
         return name;
     }
 
+    public boolean isArrays() {
+        return getTypeInfo().isArray();
+    }
 
     @Override
     public String toString() {

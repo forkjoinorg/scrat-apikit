@@ -20,7 +20,7 @@ public class JavaClientGenerator extends AbstractJavaGenerator {
     @Override
     public void generateApi(ApiInfo apiInfo) throws Exception {
         JavaClientApiWrapper utils = new JavaClientApiWrapper(
-                context, apiInfo, rootPackage, apiNameMaper
+                context, apiInfo, rootPackage, apiNameMapper
         );
         if(CollectionUtils.isNotEmpty(filterList)){
             utils.setFilterList(filterList);
@@ -51,12 +51,12 @@ public class JavaClientGenerator extends AbstractJavaGenerator {
         isAnnotations = annotations;
     }
 
-    public NameMaper getApiNameMaper() {
-        return apiNameMaper;
+    public NameMapper getApiNameMaper() {
+        return apiNameMapper;
     }
 
-    public void setApiNameMaper(NameMaper apiNameMaper) {
-        this.apiNameMaper = apiNameMaper;
+    public void setApiNameMaper(NameMapper apiNameMapper) {
+        this.apiNameMapper = apiNameMapper;
     }
 
 }

@@ -3,6 +3,7 @@ package org.forkjoin.scrat.apikit.tool.info;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.forkjoin.scrat.apikit.core.ActionType;
+import org.forkjoin.scrat.apikit.tool.utils.NameUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,6 +104,9 @@ public class ApiMethodInfo {
 
     public String getName() {
         return name;
+    }
+    public String getUpperName() {
+        return NameUtils.toUpperName(this.name);
     }
 
     public void setName(String name) {

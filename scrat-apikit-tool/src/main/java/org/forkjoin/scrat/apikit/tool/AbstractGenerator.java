@@ -21,7 +21,7 @@ public abstract class AbstractGenerator extends AbstractFileGenerator {
 
     protected List<ClassInfo> filterList = new ArrayList<>();
 
-    protected NameMaper apiNameMaper = new PatternNameMaper(
+    protected NameMapper apiNameMapper = new PatternNameMapper(
             "(?<name>.*)Controller", "${name}"
     );
 
@@ -120,7 +120,7 @@ public abstract class AbstractGenerator extends AbstractFileGenerator {
     private boolean filterModule(ModuleInfo moduleInfo) {
         if (CollectionUtils.isNotEmpty(filterList)) {
             for (ClassInfo ci : filterList) {
-                if (ci.equals(moduleInfo.getPackageName(), moduleInfo.getName())) {
+                if (ci.matchesEquals(moduleInfo.getPackageName(), moduleInfo.getName())) {
                     return false;
                 }
             }

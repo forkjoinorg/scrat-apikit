@@ -1,7 +1,5 @@
 package org.forkjoin.scrat.apikit.tool.info;
 
-import org.springframework.http.codec.multipart.FilePart;
-
 import java.util.Objects;
 
 public class ClassInfo implements Comparable<ClassInfo> {
@@ -47,6 +45,8 @@ public class ClassInfo implements Comparable<ClassInfo> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ClassInfo classInfo = (ClassInfo) o;
+
+
         return Objects.equals(packageName, classInfo.packageName) &&
                 Objects.equals(name, classInfo.name);
     }
@@ -55,6 +55,17 @@ public class ClassInfo implements Comparable<ClassInfo> {
     public boolean equals(String packageName, String name) {
         return Objects.equals(packageName, this.packageName) &&
                 Objects.equals(name, this.name);
+    }
+
+    public boolean matchesEquals(String packageName, String name) {
+        if (Objects.equals(packageName, this.packageName)) {
+            if (this.name.equals(name)) {
+                return true;
+            } else if (name != null && name.matches(this.name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

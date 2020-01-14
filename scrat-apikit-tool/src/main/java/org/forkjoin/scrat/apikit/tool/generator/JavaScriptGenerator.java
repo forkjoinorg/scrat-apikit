@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class JavaScriptGenerator extends AbstractHttlGenerator {
     private JSWrapper.Type type = JSWrapper.Type.TypeScript;
     private String jsPackageName;
-    protected NameMaper apiNameMaper = new PatternNameMaper(
+    protected NameMapper apiNameMapper = new PatternNameMapper(
             "(?<name>.*)Controller|Service", "${name}Api"
     );
 
@@ -51,7 +51,7 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
 
     @Override
     public void generateApi(ApiInfo apiInfo) throws Exception {
-        JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName, apiNameMaper);
+        JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName, apiNameMapper);
         String packageName = apiInfo.getPackageName();
         String sourceRootPackage = context.getRootPackage();
         String distPackage = messagePackageNameMapper.apply(sourceRootPackage, packageName);
@@ -126,7 +126,7 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
                     .getValues()
                     .stream()
                     .map(apiInfo -> {
-                        JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName, apiNameMaper);
+                        JSApiWrapper utils = new JSApiWrapper(context, apiInfo, rootPackage, jsPackageName, apiNameMapper);
                         String value = utils.getPack().replace(".", "/") + '/' + utils.getName();
                         return new AbstractMap.SimpleImmutableEntry<>(utils.getName(), value);
                     })
@@ -143,27 +143,32 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
             );
         }
         {
+            boolean isEmpty = context.getApis().getAll().isEmpty() && context.getEnums().isEmpty() &&  context.getMessages().isEmpty();
             File packageFile = Utils.packToPath(outPath, "", "package", ".json");
-            ObjectNode packageJson;
+            ObjectNode packageJson = null;
             if (packageFile.exists()) {
                 packageJson = (ObjectNode) JsonUtils.mapper.readTree(packageFile);
             } else {
-                try (InputStream inputStream = JavaScriptGenerator.class.getResourceAsStream(getTempl("package.json"))) {
-                    packageJson = (ObjectNode) JsonUtils.mapper.readTree(inputStream);
+                if(isEmpty){
+                    try (InputStream inputStream = JavaScriptGenerator.class.getResourceAsStream(getTempl("package.json"))) {
+                        packageJson = (ObjectNode) JsonUtils.mapper.readTree(inputStream);
+                    }
                 }
             }
 
-            packageJson.put("name", jsPackageName);
-            if (this.version != null) {
-                String prevVersionText = packageJson.get("version").asText();
-                if (prevVersionText != null) {
-                    prevVersionText = prevVersionText.replaceAll("([^.]+)\\.([^.]+)\\.([^.]+)", "$1.$2." + version);
-                } else {
-                    prevVersionText = "1.0." + version;
+            if(packageJson != null){
+                packageJson.put("name", jsPackageName);
+                if (this.version != null) {
+                    String prevVersionText = packageJson.get("version").asText();
+                    if (prevVersionText != null) {
+                        prevVersionText = prevVersionText.replaceAll("([^.]+)\\.([^.]+)\\.([^.]+)", "$1.$2." + version);
+                    } else {
+                        prevVersionText = "1.0." + version;
+                    }
+                    packageJson.put("version", prevVersionText);
                 }
-                packageJson.put("version", prevVersionText);
+                JsonUtils.mapper.writerWithDefaultPrettyPrinter().writeValue(packageFile, packageJson);
             }
-            JsonUtils.mapper.writerWithDefaultPrettyPrinter().writeValue(packageFile, packageJson);
         }
     }
 
@@ -183,11 +188,11 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
         this.jsPackageName = jsPackageName;
     }
 
-    public NameMaper getApiNameMaper() {
-        return apiNameMaper;
+    public NameMapper getApiNameMapper() {
+        return apiNameMapper;
     }
 
-    public void setApiNameMaper(NameMaper apiNameMaper) {
-        this.apiNameMaper = apiNameMaper;
+    public void setApiNameMapper(NameMapper apiNameMapper) {
+        this.apiNameMapper = apiNameMapper;
     }
 }

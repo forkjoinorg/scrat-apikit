@@ -1,5 +1,5 @@
 package org.forkjoin.scrat.apikit.tool.generator;
 
-public interface NameMaper {
+public interface NameMapper {
     String apply(String name);
 }

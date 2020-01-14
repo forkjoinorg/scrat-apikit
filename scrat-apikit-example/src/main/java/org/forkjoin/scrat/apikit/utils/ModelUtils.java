@@ -2,9 +2,9 @@ package org.forkjoin.scrat.apikit.utils;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.forkjoin.scrat.apikit.example.model.ObjectModel;
-import org.forkjoin.scrat.apikit.example.model.TestArrayModel;
 import org.forkjoin.TestModel;
+import org.forkjoin.scrat.apikit.example.model.ObjectModel;
+import org.forkjoin.scrat.apikit.example.form.child.TestArrayModel;
 import org.forkjoin.scrat.apikit.example.model.TestWrapperModel;
 
 import java.util.Arrays;
@@ -16,9 +16,9 @@ public class ModelUtils {
         TestModel test = new TestModel();
         TestWrapperModel testWrapper = new TestWrapperModel();
 
-        m.setTestArray(testArray);
+//        m.setTestArray(testArray);
         m.setTest(test);
-        m.setTestWrapper(testWrapper);
+//        m.setTestWrapper(testWrapper);
 
 
         testArray.setBooleanValueArray(new boolean[]{newBoolean(), newBoolean()});
@@ -59,7 +59,6 @@ public class ModelUtils {
         test.setDoubleValue(newDouble());
         test.setStringValue(newString());
         test.setCharValue(newChar());
-
 
 
         testWrapper.setBooleanValue(newBoolean());

@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.forkjoin.scrat.apikit</groupId>
         <artifactId>scrat-apikit</artifactId>
-        <version>2.0.1</version>
+        <version>2.0.2</version>
     </parent>
     <artifactId>scrat-apikit-example</artifactId>
     <packaging>jar</packaging>
@@ -64,36 +64,65 @@
             <plugin>
                 <groupId>org.forkjoin.scrat.apikit</groupId>
                 <artifactId>scrat-apikit-maven-plugin</artifactId>
-                <version>2.0.1</version>
+                <version>2.0.2</version>
                 <configuration>
-                    <git implementation="org.forkjoin.scrat.apikit.plugin.bean.GitInfo">
-                        <name>左国材(小草)</name>
-                        <email>zuogc@billbear.cn</email>
-                        <url>https://gitlab.dev.billbear.cn/zuoge85/test.git</url>
-                        <branch>master</branch>
-                    </git>
+<!--                    <git implementation="org.forkjoin.scrat.apikit.plugin.bean.GitInfo">-->
+<!--                        <name>左国材(小草)</name>-->
+<!--                        <email>zuogc@billbear.cn</email>-->
+<!--                        <url>https://gitlab.dev.billbear.cn/zuoge85/test.git</url>-->
+<!--                        <branch>master</branch>-->
+<!--                    </git>-->
+<!--                    <groups>-->
+<!--                        <group implementation="org.forkjoin.scrat.apikit.plugin.bean.Group">-->
+<!--                            <rootPackage>org.forkjoin.scrat.apikit.example</rootPackage>-->
+<!--                            <tasks>-->
+<!--                                <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask">-->
+<!--                                    <outPath>pj-java/src/main/java/</outPath>-->
+<!--                                    <clean>true</clean>-->
+
+<!--                                    <rootPackage>org.forkjoin.scrat.apikit.example.client</rootPackage>-->
+<!--                                    <nameMaperSource><![CDATA[(?<name>.*)]]></nameMaperSource>-->
+<!--                                    <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>-->
+<!--                                    <filterList>-->
+<!--                                        <ClassInfo implementation="org.forkjoin.scrat.apikit.tool.info.ClassInfo">-->
+<!--                                            <packageName>org.forkjoin</packageName>-->
+<!--                                            <name>BaseObj</name>-->
+<!--                                        </ClassInfo>-->
+<!--                                    </filterList>-->
+<!--                                </task>-->
+<!--                                <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask">-->
+<!--                                    <type>ES6</type>-->
+<!--                                    <outPath>pj-js/src/main/js/</outPath>-->
+
+<!--                                    <clean>true</clean>-->
+<!--                                    <cleanExcludes><![CDATA[.*package\.json$]]></cleanExcludes>-->
+
+<!--                                    <jsPackageName>scrat-apikit-example</jsPackageName>-->
+<!--                                    <nameMaperSource><![CDATA[(?<name>.*)Service]]></nameMaperSource>-->
+<!--                                    <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>-->
+<!--                                </task>-->
+<!--                            </tasks>-->
+<!--                        </group>-->
+<!--                    </groups>-->
                     <groups>
                         <group implementation="org.forkjoin.scrat.apikit.plugin.bean.Group">
                             <rootPackage>org.forkjoin.scrat.apikit.example</rootPackage>
                             <tasks>
                                 <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask">
-                                    <outPath>pj-java/src/main/java/</outPath>
-                                    <clean>true</clean>
-                                    <cleanExcludes><![CDATA[.*package\.json$]]></cleanExcludes>
+                                    <outPath>${project.basedir}/src/test/java/</outPath>
                                     <rootPackage>org.forkjoin.scrat.apikit.example.client</rootPackage>
                                     <nameMaperSource><![CDATA[(?<name>.*)]]></nameMaperSource>
                                     <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>
                                     <filterList>
                                         <ClassInfo implementation="org.forkjoin.scrat.apikit.tool.info.ClassInfo">
                                             <packageName>org.forkjoin</packageName>
-                                            <name>BaseObj</name>
+                                            <name>.*</name>
                                         </ClassInfo>
                                     </filterList>
                                 </task>
                                 <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask">
-                                    <type>ES6</type>
-                                    <outPath>pj-js/src/main/js/</outPath>
-                                    <clean>true</clean>
+                                    <type>TypeScript</type>
+                                    <outPath>${project.basedir}/src/test/js/</outPath>
                                     <jsPackageName>scrat-apikit-example</jsPackageName>
                                     <nameMaperSource><![CDATA[(?<name>.*)Service]]></nameMaperSource>
                                     <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>
