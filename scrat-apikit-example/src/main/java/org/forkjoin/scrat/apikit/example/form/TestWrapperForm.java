@@ -1,5 +1,8 @@
 package org.forkjoin.scrat.apikit.example.form;
 
+import java.util.Date;
+import java.util.StringJoiner;
+
 public class TestWrapperForm {
     private Long longValue;
     private Integer intValue;
@@ -10,6 +13,7 @@ public class TestWrapperForm {
     private Double doubleValue;
     private Boolean booleanValue;
     private String stringValue;
+    private Date dateValue;
 
     public Long getLongValue() {
         return longValue;
@@ -83,19 +87,28 @@ public class TestWrapperForm {
         this.stringValue = stringValue;
     }
 
+    public Date getDateValue() {
+        return dateValue;
+    }
+
+    public void setDateValue(Date dateValue) {
+        this.dateValue = dateValue;
+    }
+
     @Override
     public String toString() {
-        return "TestWrapperModel{" +
-                "longValue=" + longValue +
-                ", intValue=" + intValue +
-                ", shortValue=" + shortValue +
-                ", byteValue=" + byteValue +
-                ", charValue=" + charValue +
-                ", floatValue=" + floatValue +
-                ", doubleValue=" + doubleValue +
-                ", booleanValue=" + booleanValue +
-                ", stringValue='" + stringValue + '\'' +
-                '}';
+        return new StringJoiner(", ", TestWrapperForm.class.getSimpleName() + "[", "]")
+                .add("longValue=" + longValue)
+                .add("intValue=" + intValue)
+                .add("shortValue=" + shortValue)
+                .add("byteValue=" + byteValue)
+                .add("charValue=" + charValue)
+                .add("floatValue=" + floatValue)
+                .add("doubleValue=" + doubleValue)
+                .add("booleanValue=" + booleanValue)
+                .add("stringValue='" + stringValue + "'")
+                .add("dateValue=" + dateValue)
+                .toString();
     }
 }
 

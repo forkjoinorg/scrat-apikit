@@ -42,6 +42,7 @@ public class JSWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
 
         addClassMap(new ClassInfo(FilePart.class), new ClassInfo(null, "Blob"));
         addClassMap(new ClassInfo(FormFieldPart.class), new ClassInfo(null, "string"));
+        addClassMap(new ClassInfo("org.bson.types", "ObjectId"), new ClassInfo(null, "string"));
     }
 
     @Override
@@ -58,7 +59,10 @@ public class JSWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
     }
 
     protected boolean filterType(TypeInfo typeInfo) {
-        return typeInfo.getType().equals(TypeInfo.Type.OTHER) && (!typeInfo.isCollection()) && (!typeInfo.isGeneric());
+        return typeInfo.getType().equals(TypeInfo.Type.OTHER)
+                && (!typeInfo.isCollection())
+                && (!typeInfo.isGeneric())
+                && (!typeInfo.isMap());
     }
 
     protected Iterable<? extends String> toImports(ClassInfo classInfo) {
@@ -125,33 +129,48 @@ public class JSWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
 //        }
         return Collections.emptyList();
     }
+//
+//    public String toTypeString(TypeInfo typeInfo) {
+//        return toTypeString(typeInfo, true);
+//    }
+
+//    protected void toArrayTypeString(TypeInfo typeInfo, StringBuilder sb) {
+//        sb.append(toTypeString(typeInfo, false));
+//        sb.append("[]");
+//    }
 
     public String toTypeString(TypeInfo typeInfo) {
-        return toTypeString(typeInfo, true);
-    }
-
-    protected void toArrayTypeString(TypeInfo typeInfo, StringBuilder sb) {
-        sb.append(toTypeString(typeInfo, false));
-        sb.append("[]");
-    }
-
-    public String toTypeString(TypeInfo typeInfo, boolean isArray) {
         typeInfo = map(typeInfo);
 
-        if (isList(typeInfo)) {
+        if ((typeInfo.isCollection())) {
             List<TypeInfo> typeArguments = typeInfo.getTypeArguments();
             if (typeArguments.size() != 1) {
                 throw new RuntimeException("List，必须有泛型参数");
             }
-            return toTypeString(typeArguments.get(0), true);
+            TypeInfo typeInfo1 = typeArguments.get(0).clone();
+            typeInfo1.setArray(true);
+            return toTypeString(typeInfo1);
         }
         StringBuilder sb = new StringBuilder();
         TypeInfo.Type type = typeInfo.getType();
-        if (type == TypeInfo.Type.BYTE && typeInfo.isArray()) {
-            sb.append("string");
-        } else if (isArray && typeInfo.isArray()) {
-            toArrayTypeString(typeInfo, sb);
+        if (typeInfo.isMap()) {
+//
+            List<TypeInfo> typeArguments = typeInfo.getTypeArguments();
+            if (typeArguments.size() != 2) {
+                throw new RuntimeException("Map，必须有2个泛型参数");
+            }
+            TypeInfo keyTypeInfo = typeInfo.getTypeArguments().get(0);
+            TypeInfo valueTypeInfo = typeInfo.getTypeArguments().get(1);
+            String key;
+            if (keyTypeInfo.isEnum()) {
+                key = "string";
+            } else {
+                key = toTypeString(keyTypeInfo);
+            }
+            sb.append("{[key: ").append(key).append("]: ").append(toTypeString(valueTypeInfo)).append("}");
             return sb.toString();
+        } else if (type == TypeInfo.Type.BYTE && typeInfo.isArray()) {
+            sb.append("string");
         } else if (typeInfo.isOtherType()) {
             sb.append(typeInfo.getName());
         } else {
@@ -165,7 +184,7 @@ public class JSWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
                 if (i > 0) {
                     sb.append(',');
                 }
-                sb.append(toTypeString(typeArgument, isArray));
+                sb.append(toTypeString(typeArgument));
             }
             sb.append('>');
         } else if (typeInfo.getTypeParametersSize() > 0) {
@@ -178,16 +197,13 @@ public class JSWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
             }
             sb.append('>');
         }
-
-        return sb.toString();
-    }
-
-    private boolean isList(TypeInfo typeInfo) {
-        if (List.class.getName().equals(typeInfo.getFullName())) {
-            return true;
-        } else {
-            return false;
+        if (type == TypeInfo.Type.BYTE && typeInfo.isArray()) {
+            return sb.toString();
         }
+        if (typeInfo.isArray()) {
+            sb.append("[]");
+        }
+        return sb.toString();
     }
 
     private static final ImmutableMap<TypeInfo.Type, String> typeMap
@@ -201,6 +217,7 @@ public class JSWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
             .put(TypeInfo.Type.FLOAT, "number")
             .put(TypeInfo.Type.DOUBLE, "number")
             .put(TypeInfo.Type.DATE, "Date")
+            .put(TypeInfo.Type.CHAR, "string")
             .put(TypeInfo.Type.STRING, "string")
             .build();
 

@@ -2,6 +2,7 @@
 <!--#set(PropertyInfo attr)-->
 <!--#set(JSMessageWrapper utils)-->
 <!--#set(TypeInfo type)-->
+import {Page, Pageable, Sort, Order} from 'apikit-core'
 $!{utils.imports}
 
 /**

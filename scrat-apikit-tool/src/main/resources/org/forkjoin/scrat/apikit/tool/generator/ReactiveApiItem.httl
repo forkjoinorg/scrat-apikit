@@ -5,12 +5,15 @@
 <!--#set(ApiMethodParamInfo param)-->
 package $!{utils.getPack()};
 
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.*;
+
+import java.time.*;
 
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Future;
 
+import javax.annotation.Nullable;
 
 import org.forkjoin.scrat.apikit.client.*;
 
@@ -38,13 +41,9 @@ public class $!{utils.name} {
      *
    $!{utils.requestComment(method,"    * ")}
      */
-    public Mono<$!{utils.resultData(method)}> $!{method.name}($!{utils.params(method)}) {
-<!--        #for(param : method.params)-->
-<!--            #if(!param.isRequired)-->
-           $!{utils.toJavaTypeString(param.getTypeInfo(), false, true)} ${param.getName()} = ${param.getName()}Opt.orElse($!{utils.toValue(param)});
-<!--            #end-->
-<!--        #end-->
-
+    public $!{utils.resultData(method)} $!{method.name}(
+        $!{utils.params(method)}
+    ) {
             RequestInfo _requestInfo = new RequestInfo();
             _requestInfo.setMethod("$!{method.type.name()}");
             _requestInfo.setUri("$!{method.url}");
@@ -59,17 +58,36 @@ public class $!{utils.name} {
 
 <!--        #for(param : method.params)-->
 <!--            #if(param.isPathVariable)-->
-            _requestInfo.addPathVar("$!{param.getAnnotationName()}",$!{param.getName()});
+<!--                #if(param.hasDefaultValue)-->
+            _requestInfo.addPathVar("$!{param.getAnnotationName()}", $!{param.getName()}, $!{utils.toValue(param)});
+<!--                #else-->
+            _requestInfo.addPathVar("$!{param.getAnnotationName()}", $!{param.getName()});
+<!--                #end-->
 <!--            #else(param.isFormParam)-->
             _requestInfo.addForm($!{param.getName()}::encode);
-<!--            #else(param.isRequestParam || param.isRequestPartFile || param.isRequestPartField)-->
+<!--            #else(param.isRequestParam)-->
+<!--                #if(param.hasDefaultValue)-->
+            _requestInfo.addRequestParams("$!{param.getAnnotationName()}", $!{param.getName()}, $!{utils.toValue(param)});
+<!--                #else-->
+            _requestInfo.addRequestParams("$!{param.getAnnotationName()}", $!{param.getName()});
+<!--                #end-->
+<!--            #else(param.isRequestPartFile || param.isRequestPartField)-->
             _requestInfo.addFormParam("$!{param.getAnnotationName()}",$!{param.getName()});
 <!--            #else(param.isRequestHeader)-->
-            _requestInfo.addHeader("$!{param.getAnnotationName()}",$!{param.getName()});
+<!--                #if(param.hasDefaultValue)-->
+            _requestInfo.addHeader("$!{param.getAnnotationName()}", $!{param.getName()}, $!{utils.toValue(param)});
+<!--                #else-->
+            _requestInfo.addHeader("$!{param.getAnnotationName()}", $!{param.getName()});
+<!--                #end-->
 <!--            #end-->
 <!--        #end-->
 
+<!--        #if(method.isFlux)-->
+            Mono<$!{utils.toResultType(method)}> $result = apiAdapter.request(_requestInfo);
+            return $result.flatMapIterable(r->r);
+<!--        #else-->
             return apiAdapter.request(_requestInfo);
+<!--        #end-->
        }
 
 

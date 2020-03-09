@@ -43,6 +43,20 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.data</groupId>
+                    <artifactId>spring-data-redis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
         <dependency>
@@ -81,8 +95,8 @@
 <!--                                    <clean>true</clean>-->
 
 <!--                                    <rootPackage>org.forkjoin.scrat.apikit.example.client</rootPackage>-->
-<!--                                    <nameMaperSource><![CDATA[(?<name>.*)]]></nameMaperSource>-->
-<!--                                    <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>-->
+<!--                                    <nameMapperSource><![CDATA[(?<name>.*)]]></nameMapperSource>-->
+<!--                                    <nameMapperDist><![CDATA[${name}Api]]></nameMapperDist>-->
 <!--                                    <filterList>-->
 <!--                                        <ClassInfo implementation="org.forkjoin.scrat.apikit.tool.info.ClassInfo">-->
 <!--                                            <packageName>org.forkjoin</packageName>-->
@@ -98,8 +112,8 @@
 <!--                                    <cleanExcludes><![CDATA[.*package\.json$]]></cleanExcludes>-->
 
 <!--                                    <jsPackageName>scrat-apikit-example</jsPackageName>-->
-<!--                                    <nameMaperSource><![CDATA[(?<name>.*)Service]]></nameMaperSource>-->
-<!--                                    <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>-->
+<!--                                    <nameMapperSource><![CDATA[(?<name>.*)Service]]></nameMapperSource>-->
+<!--                                    <nameMapperDist><![CDATA[${name}Api]]></nameMapperDist>-->
 <!--                                </task>-->
 <!--                            </tasks>-->
 <!--                        </group>-->
@@ -111,21 +125,29 @@
                                 <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaClientTask">
                                     <outPath>${project.basedir}/src/test/java/</outPath>
                                     <rootPackage>org.forkjoin.scrat.apikit.example.client</rootPackage>
-                                    <nameMaperSource><![CDATA[(?<name>.*)]]></nameMaperSource>
-                                    <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>
+                                    <nameMapperSource><![CDATA[(?<name>.*)]]></nameMapperSource>
+                                    <nameMapperDist><![CDATA[${name}Api]]></nameMapperDist>
                                     <filterList>
                                         <ClassInfo implementation="org.forkjoin.scrat.apikit.tool.info.ClassInfo">
-                                            <packageName>org.forkjoin</packageName>
                                             <name>.*</name>
+                                            <packageName>org.springframework.data.domain</packageName>
                                         </ClassInfo>
+                                        <ClassInfo implementation="org.forkjoin.scrat.apikit.tool.info.ClassInfo">
+                                            <name>.*</name>
+                                            <packageName>org.bson.types</packageName>
+                                        </ClassInfo>
+<!--                                        <ClassInfo implementation="org.forkjoin.scrat.apikit.tool.info.ClassInfo">-->
+<!--                                            <packageName>org.forkjoin</packageName>-->
+<!--                                            <name>.*</name>-->
+<!--                                        </ClassInfo>-->
                                     </filterList>
                                 </task>
                                 <task implementation="org.forkjoin.scrat.apikit.plugin.bean.JavaScriptTask">
                                     <type>TypeScript</type>
                                     <outPath>${project.basedir}/src/test/js/</outPath>
                                     <jsPackageName>scrat-apikit-example</jsPackageName>
-                                    <nameMaperSource><![CDATA[(?<name>.*)Service]]></nameMaperSource>
-                                    <nameMaperDist><![CDATA[${name}Api]]></nameMaperDist>
+                                    <nameMapperSource><![CDATA[(?<name>.*)Service]]></nameMapperSource>
+                                    <nameMapperDist><![CDATA[${name}Api]]></nameMapperDist>
                                 </task>
                             </tasks>
                         </group>

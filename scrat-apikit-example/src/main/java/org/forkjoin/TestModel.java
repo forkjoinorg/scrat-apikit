@@ -1,6 +1,8 @@
 package org.forkjoin;
 
-public class TestModel<T> extends BaseObj<T> {
+import java.util.Date;
+
+public class TestModel<T> {
     private long longValue;
     private int intValue;
     private short shortValue;
@@ -10,8 +12,17 @@ public class TestModel<T> extends BaseObj<T> {
     private double doubleValue;
     private boolean booleanValue;
     private String stringValue;
+    private byte[] bytesValue;
     private BaseObj<String> stringBaseObj;
+    private Date data;
 
+    public Date getData() {
+        return data;
+    }
+
+    public void setData(Date data) {
+        this.data = data;
+    }
 
     public long getLongValue() {
         return longValue;
@@ -91,6 +102,14 @@ public class TestModel<T> extends BaseObj<T> {
 
     public void setStringBaseObj(BaseObj<String> stringBaseObj) {
         this.stringBaseObj = stringBaseObj;
+    }
+
+    public byte[] getBytesValue() {
+        return bytesValue;
+    }
+
+    public void setBytesValue(byte[] bytesValue) {
+        this.bytesValue = bytesValue;
     }
 
     @Override

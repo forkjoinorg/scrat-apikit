@@ -23,8 +23,8 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
         super(context, moduleInfo, rootPackage);
 
 
-        addClassMap(new ClassInfo(FilePart.class), new ClassInfo(HttpEntity.class));
-        addClassMap(new ClassInfo(FormFieldPart.class), new ClassInfo(HttpEntity.class));
+        addClassMap(new ClassInfo(FilePart.class), new ClassInfo(Object.class));
+        addClassMap(new ClassInfo(FormFieldPart.class), new ClassInfo(Object.class));
     }
 
     private Set<Class> TYPE_BACK = ImmutableSet.of(
@@ -75,7 +75,10 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
     }
 
     protected boolean filterType(TypeInfo typeInfo) {
-        return typeInfo.getType().equals(TypeInfo.Type.OTHER) && (!typeInfo.isCollection()) && (!typeInfo.isGeneric());
+        return typeInfo.getType().equals(TypeInfo.Type.OTHER)
+                && (!typeInfo.isCollection())
+                && (!typeInfo.isGeneric())
+                && (!typeInfo.isMap());
     }
 
     public String toJavaTypeStringNotArray(TypeInfo typeInfo) {
@@ -92,24 +95,26 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
     }
 
     public String toJavaTypeString(TypeInfo typeInfo, boolean isWrap, boolean isArrayList, boolean isTypeArguments) {
-        return toJavaTypeString(typeInfo, isWrap, isArrayList, isTypeArguments, isArrayList);
+        return toJavaTypeString(typeInfo, isWrap, isArrayList, isTypeArguments, isArrayList, false);
     }
 
     /**
      * @param isChildArrayList 参数类型是否处理数组
      */
-    public String toJavaTypeString(TypeInfo typeInfo, boolean isWrap, boolean isArrayList, boolean isTypeArguments, boolean isChildArrayList) {
+    public String toJavaTypeString(
+            TypeInfo typeInfo,
+            boolean isWrap, boolean isArrayList,
+            boolean isTypeArguments, boolean isChildArrayList,
+            boolean isForceWrap
+    ) {
         typeInfo = map(typeInfo);
         StringBuilder sb = new StringBuilder();
         TypeInfo.Type type = typeInfo.getType();
         if (type == TypeInfo.Type.BYTE && typeInfo.isArray()) {
-            sb.append("byte[]");
-        } else if (isArrayList && typeInfo.isArray()) {
-            toJavaArrayTypeString(typeInfo, sb, isWrap, true);
-            return sb.toString();
-        } else if (typeInfo.isOtherType()) {
+            sb.append("byte");
+        } else if (typeInfo.isOtherType() || typeInfo.isDate()) {
             sb.append(typeInfo.getName());
-        } else if (isWrap) {
+        } else if (isWrap && typeInfo.isWrapper() || isForceWrap) {
             sb.append(toJavaWrapString(type));
         } else {
             sb.append(toJavaString(type));
@@ -122,22 +127,16 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
                 if (i > 0) {
                     sb.append(',');
                 }
-                sb.append(toJavaTypeString(typeArgument, true, isChildArrayList));
+                sb.append(toJavaTypeString(typeArgument, true, isChildArrayList,true, true, true));
             }
             sb.append('>');
+        }
+        if (typeInfo.isArray()) {
+            sb.append("[]");
         }
         return sb.toString();
     }
 
-    /**
-     * 处理数组!
-     */
-    protected void toJavaArrayTypeString(TypeInfo typeInfo, StringBuilder sb, boolean isWrap, boolean isArrayList) {
-        sb.append("java.util.ArrayList");
-        sb.append('<');
-        sb.append(toJavaTypeString(typeInfo, true, false));
-        sb.append('>');
-    }
 
 
     // @Length(max = 255)
@@ -189,7 +188,7 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
 
     private static final ImmutableMap<TypeInfo.Type, Class> typeMap
             = ImmutableMap.<TypeInfo.Type, Class>builder()
-            .put(TypeInfo.Type.VOID, void.class)
+            .put(TypeInfo.Type.VOID, Void.class)
             .put(TypeInfo.Type.BOOLEAN, boolean.class)
             .put(TypeInfo.Type.BYTE, byte.class)
             .put(TypeInfo.Type.SHORT, short.class)
@@ -199,6 +198,7 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
             .put(TypeInfo.Type.DOUBLE, double.class)
             .put(TypeInfo.Type.DATE, Date.class)
             .put(TypeInfo.Type.STRING, String.class)
+            .put(TypeInfo.Type.CHAR, char.class)
             .build();
 
     private static final ImmutableMap<TypeInfo.Type, Class> typeWrapMap
@@ -213,6 +213,7 @@ public class JavaWrapper<T extends ModuleInfo> extends BuilderWrapper<T> {
             .put(TypeInfo.Type.DOUBLE, Double.class)
             .put(TypeInfo.Type.DATE, Date.class)
             .put(TypeInfo.Type.STRING, String.class)
+            .put(TypeInfo.Type.CHAR, Character.class)
             .build();
 
     public static String toJavaWrapString(TypeInfo.Type type) {

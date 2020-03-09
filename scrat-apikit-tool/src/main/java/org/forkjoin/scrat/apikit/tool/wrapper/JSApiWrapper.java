@@ -7,6 +7,7 @@ import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.generator.NameMapper;
 import org.forkjoin.scrat.apikit.tool.info.*;
 import org.forkjoin.scrat.apikit.tool.utils.NameUtils;
+import org.springframework.web.bind.annotation.ValueConstants;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
         int myLevel = getMyLevel();
         String imports = isModel ? getMethodImports() : "";
         return imports +
-                "\nimport {AbstractApi, requestGroupImpl, RequestType} from 'apikit-core'\n";
+                "\nimport {AbstractApi, requestGroupImpl, RequestType, Page, Pageable, Sort, Order} from 'apikit-core'\n";
     }
 
 
@@ -62,6 +63,8 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
             return moduleInfoPackageName.split(".").length + 1;
         }
     }
+
+
 
     public String getMethodImports() {
         return Flux
@@ -77,6 +80,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
                     findTypes(type, types);
                     return types;
                 })
+                .map(this::map)
                 .filter(this::filterType)
                 .map(ClassInfo::new)
                 .distinct()
@@ -138,24 +142,20 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 
         method.getAllTypes().forEach(typeInfo -> {
             sb.append(start).append("@see ").append(
-                    toTypeString(typeInfo, false)
+                    toTypeString(typeInfo)
             ).append("\n");
         });
         return StringUtils.stripEnd(sb.toString(), null);
     }
 
-    public String params(ApiMethodInfo method) {
-        return params(method, false);
-    }
 
-    public String params(ApiMethodInfo method, boolean isType) {
+    public String params(ApiMethodInfo method) {
         StringBuilder sb = new StringBuilder();
         ArrayList<ApiMethodParamInfo> params = method.getParams();
         if (CollectionUtils.isNotEmpty(params)) {
-            sb.append('{');
+            sb.append("{");
             for (int i = 0; i < params.size(); i++) {
                 ApiMethodParamInfo paramInfo = params.get(i);
-
                 if (i > 0) {
                     sb.append(", ");
                 }
@@ -171,7 +171,7 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
 //                    sb.append(toTypeString(paramInfo.getTypeInfo(), true));
                 }
             }
-            sb.append("}: " + method.getUpperName() + "Args");
+            sb.append("}: ").append(method.getUpperName()).append("Args");
         }
         return sb.toString();
     }
@@ -185,40 +185,70 @@ public class JSApiWrapper extends JSWrapper<ApiInfo> {
     }
 
     public String resultTypeString(ApiMethodInfo method) {
-        String returnType = toTypeString(method.getResultType());
-        return returnType;
+//        String returnType = toTypeString(method.getResultType());
+
+        StringBuilder sb = new StringBuilder();
+        TypeInfo resultType = method.getResultDataType();
+        if (method.isFlux()) {
+            sb.append(toTypeString(resultType) + "[]");
+        }else{
+            sb.append(toTypeString(resultType));
+        }
+        return sb.toString();
     }
 
     public String toValue(ApiMethodParamInfo paramInfo) {
         TypeInfo typeInfo = paramInfo.getTypeInfo();
-        String escapeJava = StringEscapeUtils.escapeEcmaScript(paramInfo.getDefaultValue());
-        if (paramInfo.getDefaultValue() == null) {
-            return "null";
+        if (ValueConstants.DEFAULT_NONE.equals(paramInfo.getDefaultValue()) || paramInfo.getDefaultValue() == null) {
+            if (typeInfo.isEnum()) {
+                return "null";
+            }
+            switch (typeInfo.getType()) {
+                case BYTE:
+                case SHORT:
+                case INT:
+                case LONG:
+                case DOUBLE:
+                case FLOAT:
+                    return "0";
+                case BOOLEAN: {
+                    return "false";
+                }
+                case STRING:
+                case DATE:
+                default: {
+                    // <T> T parseDate(String str,Class<T> cls) throws IOException;
+                    return "null";
+                }
+            }
+        } else {
+            String escapeEcmaScript = StringEscapeUtils.escapeEcmaScript(paramInfo.getDefaultValue());
+            if (typeInfo.isEnum()) {
+                return toTypeString(typeInfo) + "[\"" + escapeEcmaScript + "\"]";
+            }
+            switch (typeInfo.getType()) {
+                case BYTE:
+                case SHORT:
+                case INT:
+                case LONG:
+                case DOUBLE:
+                case FLOAT:
+                case BOOLEAN: {
+                    return escapeEcmaScript;
+                }
+                case STRING: {
+                    return "\"" + escapeEcmaScript + "\"";
+                }
+                case DATE: {
+                    // <T> T parseDate(String str,Class<T> cls) throws IOException;
+                    return "super._parseDate(\"" + escapeEcmaScript + "\")";
+                }
+                default: {
+                    throw new RuntimeException("不支持的类型" + typeInfo);
+                }
+            }
         }
 
-        TypeInfo.Type type = typeInfo.getType();
-
-        switch (type) {
-            case BYTE:
-            case SHORT:
-            case INT:
-            case LONG:
-            case DOUBLE:
-            case FLOAT:
-            case BOOLEAN: {
-                return escapeJava;
-            }
-            case STRING: {
-                return "\"" + escapeJava + "\"";
-            }
-            case DATE: {
-                // <T> T parseDate(String str,Class<T> cls) throws IOException;
-                return "super._parseDate(\"" + escapeJava + "\")";
-            }
-            default: {
-                throw new RuntimeException("不支持的类型" + typeInfo);
-            }
-        }
     }
 //
 //    private void resultTypeString(StringBuilder sb, TypeInfo resultType) {

@@ -17,7 +17,7 @@ public class JavaClientTask extends Task{
     @Override
     public String toString() {
         return "JavaClientTask{" +
-                ", rootPackage='" + rootPackage + '\'' +
-                '}';
+                "rootPackage='" + rootPackage + '\'' +
+                "} " + super.toString();
     }
 }

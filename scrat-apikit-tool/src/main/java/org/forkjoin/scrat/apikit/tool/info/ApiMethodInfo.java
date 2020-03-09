@@ -8,6 +8,7 @@ import org.forkjoin.scrat.apikit.tool.utils.NameUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,6 +21,8 @@ public class ApiMethodInfo {
     private String url;
     private ActionType[] types = new ActionType[]{ActionType.GET};
     private boolean account = true;
+    private boolean isFlux = false;
+    private boolean isMono = false;
 
 
     //    private boolean isPathVariable = false;
@@ -210,24 +213,43 @@ public class ApiMethodInfo {
         this.resultDataType = resultDataType;
     }
 
+    public boolean isFlux() {
+        return isFlux;
+    }
+
+    public void setFlux(boolean flux) {
+        isFlux = flux;
+    }
+
+    public boolean isMono() {
+        return isMono;
+    }
+
+    public void setMono(boolean mono) {
+        isMono = mono;
+    }
 
     @Override
     public String toString() {
-        return "ApiMethodInfo{" +
-                "index=" + index +
-                ", name='" + name + '\'' +
-                ", url='" + url + '\'' +
-                ", types=" + Arrays.toString(types) +
-                ", account=" + account +
-                ", params=" + params +
-                ", pathParams=" + pathParams +
-                ", formParams=" + formParams +
-                ", resultWrappedType=" + resultWrappedType +
-                ", resultType=" + resultType +
-                ", resultDataType=" + resultDataType +
-                ", comment=" + comment +
-                ", annotations=" + annotations +
-                ", file='" + file + '\'' +
-                '}';
+        return new StringJoiner(", ", ApiMethodInfo.class.getSimpleName() + "[", "]")
+                .add("index=" + index)
+                .add("name='" + name + "'")
+                .add("url='" + url + "'")
+                .add("types=" + Arrays.toString(types))
+                .add("account=" + account)
+                .add("isFlux=" + isFlux)
+                .add("isMono=" + isMono)
+                .add("params=" + params)
+                .add("pathParams=" + pathParams)
+                .add("formParams=" + formParams)
+                .add("requestPartFieldParams=" + requestPartFieldParams)
+                .add("requestPartFileParams=" + requestPartFileParams)
+                .add("resultType=" + resultType)
+                .add("resultWrappedType=" + resultWrappedType)
+                .add("resultDataType=" + resultDataType)
+                .add("comment=" + comment)
+                .add("annotations=" + annotations)
+                .add("file='" + file + "'")
+                .toString();
     }
 }

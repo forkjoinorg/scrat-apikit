@@ -2,6 +2,7 @@ package org.forkjoin.scrat.apikit.tool.info;
 
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.type.ApiMethodParamType;
+import org.springframework.web.bind.annotation.ValueConstants;
 
 import static org.forkjoin.scrat.apikit.type.ApiMethodParamType.*;
 
@@ -76,6 +77,10 @@ public class ApiMethodParamInfo extends FieldInfo {
 
     public String getDefaultValue() {
         return defaultValue;
+    }
+
+    public boolean isHasDefaultValue() {
+        return !(ValueConstants.DEFAULT_NONE.equals(defaultValue) || defaultValue == null);
     }
 
     public void setDefaultValue(String defaultValue) {

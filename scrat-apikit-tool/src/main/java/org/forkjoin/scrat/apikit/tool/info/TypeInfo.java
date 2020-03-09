@@ -2,12 +2,13 @@ package org.forkjoin.scrat.apikit.tool.info;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,6 +40,7 @@ public class TypeInfo implements Cloneable {
     private boolean generic = true;
     private int typeParametersSize = 0;
     private boolean isEnum = false;
+    private boolean isWrapper = false;
 
     private TypeInfo() {
     }
@@ -52,7 +54,8 @@ public class TypeInfo implements Cloneable {
             boolean isInside,
             boolean isGeneric,
             int typeParametersSize,
-            boolean isEnum
+            boolean isEnum,
+            boolean isWrapper
     ) {
         this.type = type;
         this.packageName = packageName;
@@ -63,6 +66,7 @@ public class TypeInfo implements Cloneable {
         this.isGeneric = isGeneric;
         this.typeParametersSize = typeParametersSize;
         this.isEnum = isEnum;
+        this.isWrapper = isWrapper;
     }
 
     public void addArguments(TypeInfo typeInfo) {
@@ -91,11 +95,12 @@ public class TypeInfo implements Cloneable {
         return typeInfo;
     }
 
-    public static TypeInfo formBaseType(String name, boolean isArray) {
+    public static TypeInfo formBaseType(String name, boolean isArray, boolean isPrimitiveWrapper) {
         TypeInfo typeInfo = new TypeInfo();
         typeInfo.type = Type.form(name);
         typeInfo.isArray = isArray;
         typeInfo.isInside = false;
+        typeInfo.isWrapper = isPrimitiveWrapper;
 
         if (!typeInfo.type.isBaseType()) {
             throw new AnalyseException("错误的类型,不是base类型:" + name);
@@ -103,11 +108,12 @@ public class TypeInfo implements Cloneable {
         return typeInfo;
     }
 
-    public static TypeInfo formBaseType(Class cls, boolean isArray) {
+    public static TypeInfo formBaseType(Class cls, boolean isArray, boolean isPrimitiveWrapper) {
         TypeInfo typeInfo = new TypeInfo();
         typeInfo.type = Type.form(cls);
         typeInfo.isArray = isArray;
         typeInfo.isInside = false;
+        typeInfo.isWrapper = isPrimitiveWrapper;
 
         if (!typeInfo.type.isBaseType()) {
             throw new AnalyseException("错误的类型,不是base类型:" + cls);
@@ -117,22 +123,33 @@ public class TypeInfo implements Cloneable {
 
 
     public static TypeInfo form(java.lang.reflect.Type type) {
-        if (type instanceof Class) {
+        if (type instanceof GenericArrayType) {
+            GenericArrayType genericArrayType = (GenericArrayType) type;
+
+            java.lang.reflect.Type genericComponentType = genericArrayType.getGenericComponentType();
+            TypeInfo typeInfo = form(genericComponentType);
+            typeInfo.setArray(true);
+            return typeInfo;
+        }else if (type instanceof Class) {
             Class cls = (Class) type;
+            boolean isPrimitiveWrapper = ClassUtils.isPrimitiveWrapper(cls);
             if (ClassUtils.isPrimitiveOrWrapper(cls)) {
-                return TypeInfo.formBaseType(cls.getName(), false);
+                return TypeInfo.formBaseType(cls.getName(), false, isPrimitiveWrapper);
             } else if (cls.isArray()) {
                 TypeInfo typeInfo = form(cls.getComponentType());
                 typeInfo.setArray(true);
                 return typeInfo;
             } else {
                 Type t = Type.form(cls);
-                if (!t.isBaseType()) {
+
+                if (!t.isBaseType() || t.equals(Type.DATE)) {
                     return new TypeInfo(
-                            t, cls.getPackage().getName(), cls.getSimpleName(), false, new ArrayList<>(), false, false, cls.getTypeParameters().length, cls.isEnum()
+                            t, cls.getPackage().getName(), cls.getSimpleName(),
+                            false, new ArrayList<>(), false, false, cls.getTypeParameters().length, cls.isEnum(),
+                            false
                     );
                 } else {
-                    return TypeInfo.formBaseType(cls.getName(), false);
+                    return TypeInfo.formBaseType(cls.getName(), false, isPrimitiveWrapper);
                 }
             }
         } else if (type instanceof java.lang.reflect.ParameterizedType) {
@@ -222,6 +239,20 @@ public class TypeInfo implements Cloneable {
         }
     }
 
+    public boolean isMap() {
+        try {
+            String fullName = getFullName();
+            if (fullName != null) {
+                Class<?> cls = Class.forName(fullName);
+                return Map.class.isAssignableFrom(cls);
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+
     public boolean isInside() {
         return isInside;
     }
@@ -244,6 +275,23 @@ public class TypeInfo implements Cloneable {
 
 
     @Override
+    public String toString() {
+        return "TypeInfo{" +
+                "type=" + type +
+                ", packageName='" + packageName + '\'' +
+                ", name='" + name + '\'' +
+                ", isArray=" + isArray +
+                ", typeArguments=" + typeArguments +
+                ", isInside=" + isInside +
+                ", isGeneric=" + isGeneric +
+                ", generic=" + generic +
+                ", typeParametersSize=" + typeParametersSize +
+                ", isEnum=" + isEnum +
+                ", isWrapper=" + isWrapper +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -251,6 +299,10 @@ public class TypeInfo implements Cloneable {
         return isArray == typeInfo.isArray &&
                 isInside == typeInfo.isInside &&
                 isGeneric == typeInfo.isGeneric &&
+                generic == typeInfo.generic &&
+                typeParametersSize == typeInfo.typeParametersSize &&
+                isEnum == typeInfo.isEnum &&
+                isWrapper == typeInfo.isWrapper &&
                 type == typeInfo.type &&
                 Objects.equals(packageName, typeInfo.packageName) &&
                 Objects.equals(name, typeInfo.name) &&
@@ -259,7 +311,7 @@ public class TypeInfo implements Cloneable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, packageName, name, isArray, typeArguments, isInside, isGeneric);
+        return Objects.hash(type, packageName, name, isArray, typeArguments, isInside, isGeneric, generic, typeParametersSize, isEnum, isWrapper);
     }
 
     @Override
@@ -278,16 +330,6 @@ public class TypeInfo implements Cloneable {
         return clone;
     }
 
-    @Override
-    public String toString() {
-        return "TypeInfo{" +
-                "type=" + type +
-                ", packageName='" + packageName + '\'' +
-                ", name='" + name + '\'' +
-                ", isArray=" + isArray +
-                ", typeArguments=" + typeArguments +
-                '}';
-    }
 
     public boolean isOtherType() {
         return type == Type.OTHER;
@@ -305,7 +347,6 @@ public class TypeInfo implements Cloneable {
             return Class.forName(getFullName());
         }
     }
-
 
 
     public boolean isEnum() {
@@ -340,6 +381,18 @@ public class TypeInfo implements Cloneable {
         this.typeParametersSize = typeParametersSize;
     }
 
+    public boolean isWrapper() {
+        return isWrapper;
+    }
+
+    public void setWrapper(boolean wrapper) {
+        isWrapper = wrapper;
+    }
+
+    public boolean isDate() {
+        return type.equals(Type.DATE);
+    }
+
     /**
      * 0. void *(只在api返回值)*
      * 1. boolean
@@ -359,7 +412,7 @@ public class TypeInfo implements Cloneable {
      * @author zuoge85
      */
     public enum Type {
-        VOID, BOOLEAN, BYTE, SHORT, INT, LONG, FLOAT,
+        VOID, BOOLEAN, BYTE, SHORT, CHAR, INT, LONG, FLOAT,
         DOUBLE, STRING, DATE,
         OTHER;
 
@@ -373,7 +426,7 @@ public class TypeInfo implements Cloneable {
                 .put(long.class.getSimpleName(), LONG)
                 .put(float.class.getSimpleName(), FLOAT)
                 .put(double.class.getSimpleName(), DOUBLE)
-                .put(char.class.getSimpleName(), DOUBLE)
+                .put(char.class.getSimpleName(), CHAR)
 
                 .put(Void.class.getName(), VOID)
                 .put(Boolean.class.getName(), BOOLEAN)
@@ -385,7 +438,7 @@ public class TypeInfo implements Cloneable {
                 .put(Double.class.getName(), DOUBLE)
 
                 .put(String.class.getName(), STRING)
-                .put(Character.class.getName(), STRING)
+                .put(Character.class.getName(), CHAR)
                 .put(Date.class.getName(), DATE)
                 .put(Instant.class.getName(), DATE)
                 .put(LocalDateTime.class.getName(), DATE)
@@ -402,7 +455,7 @@ public class TypeInfo implements Cloneable {
                 .put(long.class, LONG)
                 .put(float.class, FLOAT)
                 .put(double.class, DOUBLE)
-                .put(char.class, STRING)
+                .put(char.class, CHAR)
 
                 .put(Void.class, VOID)
                 .put(Boolean.class, BOOLEAN)
@@ -414,7 +467,7 @@ public class TypeInfo implements Cloneable {
                 .put(Double.class, DOUBLE)
 
                 .put(String.class, STRING)
-                .put(Character.class, STRING)
+                .put(Character.class, CHAR)
                 .put(Date.class, DATE)
                 .put(Instant.class, DATE)
                 .put(LocalDateTime.class, DATE)
@@ -433,6 +486,7 @@ public class TypeInfo implements Cloneable {
                 .put(DOUBLE, Double.class)
 
 
+                .put(CHAR, Character.class)
                 .put(STRING, String.class)
                 .put(DATE, Date.class)
                 .build();

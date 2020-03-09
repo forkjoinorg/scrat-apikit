@@ -8,6 +8,8 @@ import org.forkjoin.scrat.apikit.tool.info.EnumInfo;
 import org.forkjoin.scrat.apikit.tool.info.MessageInfo;
 import org.forkjoin.scrat.apikit.tool.utils.JsonUtils;
 import org.forkjoin.scrat.apikit.tool.wrapper.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
  * 这个版本还不能 ,解开泛型或者支持泛型
  */
 public class JavaScriptGenerator extends AbstractHttlGenerator {
+    private static final Logger log = LoggerFactory.getLogger(JavaScriptGenerator.class);
+
     private JSWrapper.Type type = JSWrapper.Type.TypeScript;
     private String jsPackageName;
     protected NameMapper apiNameMapper = new PatternNameMapper(
@@ -149,7 +153,7 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
             if (packageFile.exists()) {
                 packageJson = (ObjectNode) JsonUtils.mapper.readTree(packageFile);
             } else {
-                if(isEmpty){
+                if(!isEmpty){
                     try (InputStream inputStream = JavaScriptGenerator.class.getResourceAsStream(getTempl("package.json"))) {
                         packageJson = (ObjectNode) JsonUtils.mapper.readTree(inputStream);
                     }
@@ -161,10 +165,11 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
                 if (this.version != null) {
                     String prevVersionText = packageJson.get("version").asText();
                     if (prevVersionText != null) {
-                        prevVersionText = prevVersionText.replaceAll("([^.]+)\\.([^.]+)\\.([^.]+)", "$1.$2." + version);
+                        prevVersionText = prevVersionText.replaceAll("([^.]+)\\.([^.]+)\\.([^.]+)", "2.$2." + version);
                     } else {
                         prevVersionText = "1.0." + version;
                     }
+                    log.info("写入版本:{}", prevVersionText);
                     packageJson.put("version", prevVersionText);
                 }
                 JsonUtils.mapper.writerWithDefaultPrettyPrinter().writeValue(packageFile, packageJson);

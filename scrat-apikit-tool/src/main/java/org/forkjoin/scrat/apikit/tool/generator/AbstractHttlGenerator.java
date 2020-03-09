@@ -23,12 +23,12 @@ public abstract class AbstractHttlGenerator extends AbstractGenerator {
     )
             throws Exception {
 
-        log.info("开始生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
+//        log.info("开始生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("m", utils.getModuleInfo());
         parameters.put("utils", utils);
         HttlUtils.renderFile(file, parameters, templPath);
-        log.info("结束生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
+        log.info("生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
     }
 
     protected void execute(
@@ -36,9 +36,9 @@ public abstract class AbstractHttlGenerator extends AbstractGenerator {
     )
             throws Exception {
 
-        log.info("开始生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
+//        log.info("开始生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
         HttlUtils.renderFile(file, parameters, templPath);
-        log.info("结束生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
+        log.info("生成文件:{}, templ:{}", file.getAbsolutePath(), templPath);
     }
 
 
@@ -47,12 +47,12 @@ public abstract class AbstractHttlGenerator extends AbstractGenerator {
     )
             throws Exception {
 
-        log.info("开始生成文件到内存 name:{}, templ:{}", utils.getFullName(), templPath);
+//        log.info("开始生成文件到内存 name:{}, templ:{}", utils.getFullName(), templPath);
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("m", utils.getModuleInfo());
         parameters.put("utils", utils);
         String code = HttlUtils.renderToString(parameters, templPath);
-        log.info("结束生成文件到内存 name:{}, templ:{}", utils.getFullName(), templPath);
+        log.info("生成文件到内存 name:{}, templ:{}", utils.getFullName(), templPath);
         return code;
     }
 

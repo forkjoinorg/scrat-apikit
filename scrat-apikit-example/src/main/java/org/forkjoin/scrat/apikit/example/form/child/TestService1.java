@@ -1,6 +1,8 @@
 package org.forkjoin.scrat.apikit.example.form.child;
 
+import org.forkjoin.TestForm;
 import org.forkjoin.TestModel;
+import org.forkjoin.scrat.apikit.core.Ignore;
 import org.forkjoin.scrat.apikit.example.form.ValidForm;
 import org.forkjoin.scrat.apikit.example.model.ObjectModel;
 import org.forkjoin.scrat.apikit.example.model.child.GenericValue;
@@ -37,6 +39,7 @@ public class TestService1 {
     public ObjectModel testObject(
             @PathVariable String sb,
             @RequestParam String param,
+            @Valid TestForm testForm,
             @RequestHeader String header
     ) {
         return ModelUtils.newObjectModel();

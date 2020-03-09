@@ -159,6 +159,20 @@ public class BuilderWrapper<T extends ModuleInfo> {
         return filterList;
     }
 
+    public boolean isContainsFilterList(ClassInfo cls) {
+        for (int i = 0; i < filterList.size(); i++) {
+            ClassInfo classInfo = filterList.get(i);
+            if(classInfo.matchesEquals(cls.getPackageName(), cls.getName())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isContainsFilterList(TypeInfo typeInfo) {
+        return isContainsFilterList(new ClassInfo(typeInfo));
+    }
+
     public void setFilterList(List<ClassInfo> filterList) {
         this.filterList = filterList;
     }

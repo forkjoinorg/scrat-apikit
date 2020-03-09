@@ -4,6 +4,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.generator.NameMapper;
 import org.forkjoin.scrat.apikit.tool.info.*;
+import org.springframework.web.bind.annotation.ValueConstants;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -123,58 +124,79 @@ public class JavaClientApiWrapper extends JavaApiWrapper {
         ArrayList<ApiMethodParamInfo> params = method.getParams();
         for (int i = 0; i < params.size(); i++) {
             ApiMethodParamInfo paramInfo = params.get(i);
-            String name = paramInfo.getAnnotationName();
+//            String name = paramInfo.getAnnotationName();
 
             if (sb.length() > 0) {
                 sb.append(", ");
             }
-            if (paramInfo.isRequired()) {
-//                HttpEntity<?>
-
-                sb.append(toJavaTypeString(paramInfo.getTypeInfo(), false, true));
-
-                sb.append(' ');
-                sb.append(paramInfo.getName());
+            if (paramInfo.getTypeInfo().isOtherType()) {
+                if (!paramInfo.isRequired() || paramInfo.isHasDefaultValue()) {
+                    sb.append("@Nullable ");
+                }
             } else {
-                //Optional<String> paramOpt
-                sb.append("Optional<");
-                sb.append(toJavaTypeString(paramInfo.getTypeInfo(), true, true));
-                sb.append("> ");
-                sb.append(paramInfo.getName());
-                sb.append("Opt");
+                if ((!paramInfo.isRequired() || paramInfo.isHasDefaultValue()) && paramInfo.getTypeInfo().isWrapper()) {
+                    sb.append("@Nullable ");
+                }
             }
+            sb.append(toJavaTypeString(paramInfo.getTypeInfo(), true, false));
+            sb.append(' ');
+            sb.append(paramInfo.getName());
         }
         return sb.toString();
     }
 
     public String toValue(ApiMethodParamInfo paramInfo) {
         TypeInfo typeInfo = paramInfo.getTypeInfo();
-        String escapeJava = StringEscapeUtils.escapeJava(paramInfo.getDefaultValue());
-        if (paramInfo.getDefaultValue() == null) {
-            return "null";
-        }
 
         TypeInfo.Type type = typeInfo.getType();
 
-        switch (type) {
-            case BYTE:
-            case SHORT:
-            case INT:
-            case LONG:
-            case DOUBLE:
-            case FLOAT:
-            case BOOLEAN: {
-                return type.getName() + ".valueOf(\"" + escapeJava + "\")";
+        if (ValueConstants.DEFAULT_NONE.equals(paramInfo.getDefaultValue()) || paramInfo.getDefaultValue() == null) {
+            if (typeInfo.isEnum()) {
+                return "null";
             }
-            case STRING: {
-                return "\"" + escapeJava + "\"";
+            switch (type) {
+                case BYTE:
+                case SHORT:
+                case INT:
+                case LONG:
+                case DOUBLE:
+                case FLOAT:
+                    return "0";
+                case BOOLEAN: {
+                    return "false";
+                }
+                case STRING:
+                case DATE:
+                default: {
+                    // <T> T parseDate(String str,Class<T> cls) throws IOException;
+                    return "null";
+                }
             }
-            case DATE: {
-                // <T> T parseDate(String str,Class<T> cls) throws IOException;
-                return "apiAdapter.parseDate(\"" + escapeJava + "\", Date.class)";
+        } else {
+            String escapeJava = StringEscapeUtils.escapeJava(paramInfo.getDefaultValue());
+            if (typeInfo.isEnum()) {
+                return toJavaTypeString(typeInfo, true, false) + ".valueOf(\"" + escapeJava + "\")";
             }
-            default: {
-                throw new RuntimeException("不支持的类型" + typeInfo);
+            switch (type) {
+                case BYTE:
+                case SHORT:
+                case INT:
+                case LONG:
+                case DOUBLE:
+                case FLOAT:
+                case BOOLEAN: {
+                    return type.getName() + ".valueOf(\"" + escapeJava + "\")";
+                }
+                case STRING: {
+                    return "\"" + escapeJava + "\"";
+                }
+                case DATE: {
+                    // <T> T parseDate(String str,Class<T> cls) throws IOException;
+                    return "apiAdapter.parseDate(\"" + escapeJava + "\", Date.class)";
+                }
+                default: {
+                    throw new RuntimeException("不支持的类型" + typeInfo);
+                }
             }
         }
     }

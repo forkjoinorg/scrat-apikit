@@ -23,7 +23,7 @@ public class ExecUtils {
         return exec(command, log, dir, null, null);
     }
 
-    public static int exec(String command, Log log, @Nullable String dir, @Nullable StringBuffer stringBuffer,@Nullable StringBuffer errStringBuffer) {
+    public static int exec(String command, Log log, @Nullable String dir, @Nullable StringBuffer stringBuffer, @Nullable StringBuffer errStringBuffer) {
         try {
             Process exec;
             if (dir == null) {
@@ -32,6 +32,10 @@ public class ExecUtils {
                 exec = Runtime.getRuntime().exec(command, new String[]{}, new File(dir));
             }
 
+            if (errStringBuffer == null) {
+                errStringBuffer = new StringBuffer();
+            }
+            StringBuffer finalErrStringBuffer = errStringBuffer;
             Flux<String> inputFlux = Flux
                     .<String>create(fluxSink -> {
                         BufferedReader input = new BufferedReader(new InputStreamReader(exec.getErrorStream()));
@@ -47,11 +51,7 @@ public class ExecUtils {
                     })
                     .subscribeOn(Schedulers.elastic())
                     .doOnNext(log::info)
-                    .doOnNext(str -> {
-                        if (errStringBuffer != null) {
-                            errStringBuffer.append(str);
-                        }
-                    });
+                    .doOnNext(finalErrStringBuffer::append);
 
 
             Flux<String> inputErrorFlux = Flux
@@ -79,6 +79,7 @@ public class ExecUtils {
                     .then(Mono.<Integer>create(r -> {
                         try {
                             r.success(exec.waitFor());
+                            log.info("finalErrStringBuffer:" + finalErrStringBuffer);
                         } catch (InterruptedException e) {
                             r.error(e);
                         }

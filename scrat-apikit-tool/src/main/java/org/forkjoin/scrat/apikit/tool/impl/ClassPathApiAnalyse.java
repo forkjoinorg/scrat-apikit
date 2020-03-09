@@ -170,7 +170,7 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
                 if (typeInfo.getTypeArguments().size() != 1) {
                     throw new AnalyseException("返回参数的类型变量数只能是1！!" + typeInfo);
                 }
-                boolean isSingle = isGenericWrapperSingle(typeInfo);
+                boolean isSingle = isMono(typeInfo);
                 TypeInfo realResultType = typeInfo.getTypeArguments().get(0);
 
                 if (isSingle) {
@@ -297,25 +297,13 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
             if (resultType.getTypeArguments().size() != 1) {
                 throw new AnalyseException("返回参数的类型变量数只能是1！!" + resultType);
             }
-            boolean isSingle = isGenericWrapperSingle(resultType);
             TypeInfo realResultType = resultType.getTypeArguments().get(0);
 
+            apiMethodInfo.setMono(isMono(resultType));
+            apiMethodInfo.setFlux(isFlux(resultType));
 //            TypeInfo resultWrappedType = newResultTypeInfo(realResultType);
-            if (isSingle) {
-                apiMethodInfo.setResultType(realResultType);
-//                apiMethodInfo.setResultWrappedType(resultWrappedType);
-
-                apiMethodInfo.setResultDataType(realResultType);
-            } else {
-                TypeInfo realResultTypeArray = realResultType.clone();
-                realResultTypeArray.setArray(true);
-
-                apiMethodInfo.setResultType(realResultTypeArray);
-//                apiMethodInfo.setResultWrappedType(resultWrappedType);
-
-
-                apiMethodInfo.setResultDataType(realResultTypeArray);
-            }
+            apiMethodInfo.setResultType(realResultType);
+            apiMethodInfo.setResultDataType(realResultType);
         } else {
             apiMethodInfo.setResultType(resultType);
 //            TypeInfo resultWrappedType = newResultTypeInfo(resultType);
@@ -325,8 +313,12 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
         }
     }
 
-    private boolean isGenericWrapperSingle(TypeInfo cls) {
+    private boolean isMono(TypeInfo cls) {
         return equals(cls, Mono.class);
+    }
+
+    private boolean isFlux(TypeInfo cls) {
+        return equals(cls, Flux.class);
     }
 
     private boolean equals(TypeInfo typeInfo, Class<?> cls) {

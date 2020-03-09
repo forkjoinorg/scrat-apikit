@@ -4,7 +4,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.generator.NameMapper;
-import org.forkjoin.scrat.apikit.tool.info.*;
+import org.forkjoin.scrat.apikit.tool.info.ApiInfo;
+import org.forkjoin.scrat.apikit.tool.info.ApiMethodInfo;
+import org.forkjoin.scrat.apikit.tool.info.ApiMethodParamInfo;
+import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +56,11 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
     public String resultData(ApiMethodInfo method) {
         StringBuilder sb = new StringBuilder();
         TypeInfo resultType = method.getResultDataType();
-        sb.append(toJavaTypeString(resultType, true, true));
+        if (method.isFlux()) {
+            sb.append("Flux<" + toJavaTypeString(resultType, true, true) + ">");
+        }else{
+            sb.append("Mono<" + toJavaTypeString(resultType, true, true) + ">");
+        }
         return sb.toString();
     }
 
@@ -114,19 +121,32 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
         return sb.toString();
     }
 
+
+    public String toResultType(ApiMethodInfo method) {
+        StringBuilder sb = new StringBuilder();
+        if (method.isFlux()) {
+            sb.append("List<");
+        }
+        sb.append(toJavaTypeString(method.getResultType()));
+        if (method.isFlux()) {
+            sb.append(">");
+        }
+        return sb.toString();
+    }
+
     public String resultTypeString(ApiMethodInfo method, String start) {
         StringBuilder sb = new StringBuilder(start);
         sb.append("private static final ApiType _").append(method.getIndex()).append("Type = ");
-        resultTypeString(sb, method.getResultType());
+        resultTypeString(sb, method, method.getResultType());
         sb.append(";");
         return sb.toString();
     }
 
     // private static final ApiType _0Type = ApiUtils.type(Result.class,  ApiUtils.type(java.util.ArrayList.class));
     //Result<AppModel[]>
-    private void resultTypeString(StringBuilder sb, TypeInfo resultType) {
-        if (resultType.isArray()) {
-            sb.append(" ApiUtils.type(java.util.ArrayList.class, ").append(toJavaTypeString(resultType, true, false, false)).append(".class");
+    private void resultTypeString(StringBuilder sb, ApiMethodInfo method, TypeInfo resultType) {
+        if (method.isFlux()) {
+            sb.append(" ApiUtils.type(List.class, ").append(toJavaTypeString(resultType, true, false, false)).append(".class");
         } else {
             sb.append(" ApiUtils.type(").append(toJavaTypeString(resultType, true, false, false)).append(".class");//
         }
@@ -135,7 +155,7 @@ public class JavaApiWrapper extends JavaWrapper<ApiInfo> {
         } else {
             for (TypeInfo typeArgument : resultType.getTypeArguments()) {
                 sb.append(",");
-                resultTypeString(sb, typeArgument);
+                resultTypeString(sb, method, typeArgument);
             }
             sb.append(")");
         }

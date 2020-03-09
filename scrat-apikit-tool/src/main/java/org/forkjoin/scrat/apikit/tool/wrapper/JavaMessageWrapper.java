@@ -129,13 +129,13 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
         sb.append(" [");
 
         for (PropertyInfo attr : moduleInfo.getProperties()) {
-            sb.append(attr.getName());
             if (attr.isSuperProperty()) {
                 continue;
             }
-            if (attr.getTypeInfo().isArray()) {
+            sb.append(attr.getName());
+            if (attr.getTypeInfo().isArrayOrCollection()) {
 
-                if (attr.getTypeInfo().isBytes()) {
+                if (attr.getTypeInfo().isArray()) {
                     sb.append("=length:\" + ");
 
                     sb.append("(").append(attr.getName())
@@ -173,7 +173,7 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
                 sb.append(", ");
             }
             TypeInfo typeInfo = attr.getTypeInfo();
-            sb.append(toJavaTypeString(typeInfo, false, true));
+            sb.append(toJavaTypeString(typeInfo, true, false));
             sb.append(" ");
             sb.append(attr.getName());
         }
@@ -191,63 +191,188 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
                 continue;
             }
             sb.append('\n');
-            TypeInfo sourceTypeInfo = attr.getTypeInfo();
-            TypeInfo typeInfo = sourceTypeInfo;
+//            TypeInfo sourceTypeInfo =
+            TypeInfo typeInfo = attr.getTypeInfo();
             String name = attr.getName();
-            if (typeInfo.isCollection()) {
-                if (CollectionUtils.isEmpty(typeInfo.getTypeArguments())) {
-                    throw new AnalyseException("List 类型参数不明确:" + attr.getTypeInfo());
-                }
-                TypeInfo childTypeInfo = typeInfo.getTypeArguments().get(0);
-                typeInfo = childTypeInfo.clone();
-                typeInfo.setArray(true);
-            }
-            if (typeInfo.isArray()) {
-                if (sourceTypeInfo.isBytes()) {
-                    sb.append(start).append(" if (").append(name).append(" != null && (").append(name).append(".length > 0)) {\n");
-                    sb.append("$list.add(new SimpleImmutableEntry<>(" + parentName + " + \"")
-                            .append(name).append("\", ")
-                            .append(name)
-                            .append("));\n");
-                    sb.append(start).append("}\n");
-                } else if (typeInfo.isOtherType()) {
-                    sb.append(start).append(" if (").append(name).append(" != null && (!").append(name).append(".isEmpty())) {\n");
-                    sb.append(start).append("for (int i = 0; i < ").append(name).append(".size(); i++) {\n");
-                    sb.append(start).append("    ").append(name).append(".get(i).encode(").append(parentName).append(" + \"")
-                            .append(name).append("\" + \"[\" + i + \"].\", $list);\n");
-                    sb.append(start).append("    }\n");
-                    sb.append(start).append("}\n");
-                } else if (typeInfo.isString()) {
-                    sb.append(start).append(" if (").append(name).append(" != null && (!").append(name).append(".isEmpty())) {\n");
-                    sb.append(start).append("for (int i = 0; i < ").append(name).append(".size(); i++) {\n");
-                    sb.append("$list.add(new SimpleImmutableEntry<>(" + parentName + " + \"")
-                            .append(name).append("\", ")
-                            .append(name)
-                            .append(".get(i)));\n");
-                    sb.append(start).append("    }\n");
-                    sb.append(start).append("}\n");
-                } else {
-                    sb.append(start).append(" if (").append(name).append(" != null && (!").append(name).append(".isEmpty())) {\n");
-                    sb.append("$list.add(new SimpleImmutableEntry<>(" + parentName + " + \"")
-                            .append(name).append("\", ")
-                            .append(name)
-                            .append("));\n");
-                    sb.append(start).append("}\n");
-                }
-            } else if (typeInfo.isOtherType() && !typeInfo.isEnum()) {
-                sb.append(start).append(" if (").append(name).append(" != null) {\n");
-                sb.append(start).append("    ").append(name).append(".encode(").append(parentName).append(" + \"").append(name).append(".\", $list);");
-                sb.append(start).append("}\n");
-            } else if (typeInfo.getType().isHasNull()) {
-                sb.append(start).append("if (").append(name).append(" != null) {\n");
-                getEncodeCodeItemBase(start, sb, name, parentName);
-                sb.append(start).append("}\n");
+            if (typeInfo.isMap()) {
+                getMapEncodeCode(start, parentName, sb, attr, typeInfo, name);
             } else {
-                getEncodeCodeItemBase(start, sb, name, parentName);
+                boolean isCollectionObject = false;
+                boolean isOtherType = typeInfo.isOtherType();
+                boolean isEnum = typeInfo.isEnum();
+                if (typeInfo.isCollection() && !typeInfo.isEnum()) {
+                    if (CollectionUtils.isEmpty(typeInfo.getTypeArguments())) {
+                        throw new AnalyseException("List 类型参数不明确:" + attr.getTypeInfo());
+                    }
+                    TypeInfo childTypeInfo = typeInfo.getTypeArguments().get(0);
+                    isCollectionObject = childTypeInfo.isOtherType();
+                    isOtherType = childTypeInfo.isOtherType();
+                    isEnum = childTypeInfo.isEnum();
+                }
+                if (isContainsFilterList(typeInfo)) {
+                    sb.append(start)
+                            .append("    ")
+                            .append("EncodeUtils.encodeSingle($list,")
+                            .append(parentName).append(" + \"")
+                            .append(name).append("\", ")
+                            .append(name).append(");\n");
+                } else if (isCollectionObject && !isEnum) {
+
+//                    AtomicInteger $i = new AtomicInteger();
+//                    skuGroups.forEach(skuGroup -> {
+//                        EncodeUtils.encode($list, $parent + "skuGroups" + "[" + $i.getAndIncrement() + "].", skuGroup::encode);
+//                    });
+
+                    sb.append(start).append(" if (").append(name).append(" != null && !").append(name).append(".isEmpty()) {\n");
+                    sb.append(start).append("    AtomicInteger $i = new AtomicInteger();\n");
+                    sb.append(start).append("    ").append(name).append(".forEach($").append(name).append("Item -> {\n");
+
+                    sb.append(start).append("     EncodeUtils.encode($list, ").append(parentName).append(" + \"")
+                            .append(name).append("\" + \"[\" + $i.getAndIncrement() + \"].\", $").append(name).append("Item::encode);\n");
+                    sb.append(start).append("    });\n");
+                    sb.append(start).append("}\n");
+                } else if (isOtherType && !isEnum) {
+                    if (typeInfo.isArray()) {
+                        sb.append(start).append(" if (").append(name).append(" != null && ").append(name).append(".length > 0) {\n");
+                        sb.append(start).append("for (int $i = 0; $i < ").append(name).append(".length; $i++) {\n");
+
+                        sb.append(start).append("     EncodeUtils.encode($list, ").append(parentName).append(" + \"")
+                                .append(name).append("\" + \"[\" + $i + \"].\", ").append(name).append("[$i]::encode);\n");
+
+
+                        sb.append(start).append("    }\n");
+                        sb.append(start).append("}\n");
+                    } else {
+                        sb.append(start).append(" if (").append(name).append(" != null) {\n");
+                        sb.append(start).append("    ")
+                                .append("EncodeUtils.encode($list, ")
+                                .append(parentName).append(" + \"")
+                                .append(name).append(".\", ")
+                                .append(name).append("::encode);");
+                        sb.append(start).append("}\n");
+                    }
+                } else {
+                    if (typeInfo.isArrayOrCollection()) {
+                        sb.append(start)
+                                .append("    ")
+                                .append("EncodeUtils.encodeSingle($list,")
+                                .append(parentName).append(" + \"")
+                                .append(name).append("\", ")
+                                .append(name).append(");\n");
+                    } else {
+                        getEncodeCodeItemBase(start, sb, name, parentName);
+                    }
+                }
             }
         }
         sb.append(start).append("return $list;");
         return sb.toString();
+    }
+
+    private void getMapEncodeCode(String start, String parentName, StringBuilder sb, PropertyInfo attr, TypeInfo typeInfo, String name) {
+        if (CollectionUtils.isEmpty(typeInfo.getTypeArguments()) || typeInfo.getTypeArguments().size() != 2) {
+            throw new AnalyseException("List 类型参数不明确:" + attr.getTypeInfo());
+        }
+        TypeInfo keyTypeInfo = typeInfo.getTypeArguments().get(0);
+        TypeInfo valueTypeInfo = typeInfo.getTypeArguments().get(1);
+
+        sb.append(start).append("if (" + name + " != null) {\n" +
+                start + "    " + name + ".forEach(($k,$v)-> {");
+//                if (floatMap != null) {
+//                    floatMap.forEach(($k,$v)-> {
+//                        EncodeUtils.encode($list, $parent + "floatMap." + $k +".", $v)
+//                    });
+//                }
+        typeInfo = valueTypeInfo;
+        boolean isCollectionObject = false;
+        boolean isOtherType = typeInfo.isOtherType();
+        boolean isEnum = typeInfo.isEnum();
+        if (typeInfo.isCollection() && !typeInfo.isEnum()) {
+            if (CollectionUtils.isEmpty(typeInfo.getTypeArguments())) {
+                throw new AnalyseException("List 类型参数不明确:" + attr.getTypeInfo());
+            }
+            TypeInfo childTypeInfo = typeInfo.getTypeArguments().get(0);
+            isCollectionObject = childTypeInfo.isOtherType();
+            isOtherType = childTypeInfo.isOtherType();
+            isEnum = childTypeInfo.isEnum();
+        }
+        if (isContainsFilterList(typeInfo)) {
+            sb.append(start)
+                    .append("    ")
+                    .append("EncodeUtils.encodeSingle($list,")
+                    .append(parentName).append(" + \"")
+                    .append(name).append("\", ")
+                    .append(name).append(");\n");
+        }else if (isCollectionObject && !isEnum) {
+            sb.append(start).append(" if ($v").append(" != null && !$v").append(".isEmpty()) {\n");
+            sb.append(start).append("for (int $i = 0; $i < ").append("$v.size(); $i++) {\n");
+
+//                    EncodeUtils.encode($list, $parent + "objectListMap."+ $k + "[" + $i + "].",
+//                            objectListMap.get($i)::encode);
+            sb.append(start).append("     EncodeUtils.encode($list, ").append(parentName).append(" + \"")
+                    .append(name).append(".\" + $k + \"").append("\" + \"[\" + $i + \"].\", ").append("$v.get($i)::encode);\n");
+
+
+            sb.append(start).append("    }\n");
+            sb.append(start).append("}\n");
+        } else if (isOtherType && !isEnum) {
+            if (typeInfo.isArray() && !typeInfo.isEnum()) {
+                sb.append(start).append(" if ($v").append(" != null && $v").append(".length > 0) {\n");
+                sb.append(start).append("for (int $i = 0; $i < ").append("$v.length; $i++) {\n");
+
+                sb.append(start).append("     EncodeUtils.encode($list, ").append(parentName).append(" + \"")
+                        .append(name).append(".\" + $k + ").append(" \"[\" + $i + \"].\", ").append("$v[$i]::encode);\n");
+
+
+                sb.append(start).append("    }\n");
+                sb.append(start).append("}\n");
+            } else {
+                sb.append(start).append(" if (").append(name).append(" != null) {\n");
+                sb.append(start).append("    ")
+                        .append("EncodeUtils.encode($list, ")
+                        .append(parentName).append(" + \"")
+                        .append(name).append(".\" + $k, ")
+                        .append("$v").append("::encode);");
+                sb.append(start).append("}\n");
+            }
+        } else {
+            if (typeInfo.isArrayOrCollection()) {
+                sb.append(start)
+                        .append("    ")
+                        .append("EncodeUtils.encodeSingle($list,")
+                        .append(parentName).append(" + \"")
+                        .append(name).append(".\" + $k, ")
+                        .append("$v);\n");
+            } else {
+                sb.append(start)
+                        .append("    ")
+                        .append("EncodeUtils.encode($list,")
+                        .append(parentName).append(" + \"")
+                        .append(name).append(".\" + $k, ")
+                        .append("$v);\n");
+            }
+        }
+
+        sb.append(start).append("    });\n").append(start).append("}");
+    }
+
+    /**
+     * 基本类型
+     */
+    private void getEncodeCodeItemBase(String start, StringBuilder sb, String name, String parentName) {
+//        sb.append(start)
+//                .append("    ")
+//                .append("$list.add(new SimpleImmutableEntry<>(")
+//                .append(parentName).append(" + \"")
+//                .append(name).append("\",")
+//                .append(name)
+//                .append("));\n");
+        sb.append(start)
+                .append("    ")
+                .append("EncodeUtils.encode($list,")
+                .append(parentName).append(" + \"")
+                .append(name).append("\", ")
+                .append(name).append(");\n");
     }
 
 
@@ -256,24 +381,15 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
     }
 
     public String toJavaSetName(PropertyInfo propertyInfo) {
+
         return "set" + Utils.toClassName(propertyInfo.getName());
     }
 
     public String toJavaGetName(PropertyInfo propertyInfo) {
+        if (propertyInfo.getTypeInfo().getType().equals(TypeInfo.Type.BOOLEAN)) {
+            return "is" + Utils.toClassName(propertyInfo.getName());
+        }
         return "get" + Utils.toClassName(propertyInfo.getName());
-    }
-
-    /**
-     * 基本类型
-     */
-    private void getEncodeCodeItemBase(String start, StringBuilder sb, String name, String parentName) {
-        sb.append(start)
-                .append("    ")
-                .append("$list.add(new SimpleImmutableEntry<>(")
-                .append(parentName).append(" + \"")
-                .append(name).append("\",")
-                .append(name)
-                .append("));\n");
     }
 
 

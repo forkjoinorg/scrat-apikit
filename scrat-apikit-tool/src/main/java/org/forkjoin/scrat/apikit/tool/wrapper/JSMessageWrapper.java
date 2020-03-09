@@ -1,19 +1,24 @@
 package org.forkjoin.scrat.apikit.tool.wrapper;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.forkjoin.scrat.apikit.tool.Context;
 import org.forkjoin.scrat.apikit.tool.info.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * @author zuoge85 on 15/6/14.
  */
 public class JSMessageWrapper extends JSWrapper<MessageInfo> {
+    private static final Logger log = LoggerFactory.getLogger(JSMessageWrapper.class);
+
     public JSMessageWrapper(Context context, MessageInfo messageInfo, String rootPackage) {
         super(context, messageInfo, rootPackage);
     }
@@ -63,7 +68,7 @@ public class JSMessageWrapper extends JSWrapper<MessageInfo> {
     public String getSuperInfo() {
         TypeInfo superType = moduleInfo.getSuperType();
         if (superType != null) {
-            return "extends " + toTypeString(superType, true);
+            return "extends " + toTypeString(superType);
         } else {
             return "";
         }
@@ -81,15 +86,15 @@ public class JSMessageWrapper extends JSWrapper<MessageInfo> {
                     }
                     return types;
                 })
+                .map(this::map)
                 .filter(this::filterType)
+                .filter(t -> !t.getFullName().equals(this.getSourceFullName()))
                 .map(ClassInfo::new)
                 .distinct()
                 .sort(Comparator.naturalOrder())
                 .flatMapIterable(this::toImports)
                 .collect(Collectors.joining()).block();
     }
-
-
 
 
 //    @Override

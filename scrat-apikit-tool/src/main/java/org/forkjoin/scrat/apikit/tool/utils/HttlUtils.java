@@ -56,10 +56,10 @@ public class HttlUtils {
         if (file.getName().endsWith(".java")) {
             String formatCode = JavaFileFormat.formatCode(code);
             writeStringToFile(file, formatCode, ENCODING);
-            log.info("生成一个文件{}", file.getAbsolutePath());
+//            log.info("生成一个文件{}", file.getAbsolutePath());
         } else {
             writeStringToFile(file, code, ENCODING);
-            log.info("生成一个文件{}", file.getAbsolutePath());
+//            log.info("生成一个文件{}", file.getAbsolutePath());
         }
     }
 
@@ -72,7 +72,7 @@ public class HttlUtils {
         StringBuilderWriter writer = new StringBuilderWriter();
         Template template = Inner.engine.getTemplate(templPath);
         template.render(parameters, writer);
-        log.info("生成一个文件到字符串");
+//        log.info("生成一个文件到字符串");
         return writer.toString();
     }
 }

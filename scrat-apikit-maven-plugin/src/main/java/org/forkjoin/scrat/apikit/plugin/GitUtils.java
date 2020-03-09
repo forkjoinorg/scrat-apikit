@@ -15,9 +15,10 @@ public class GitUtils {
 
     public static int getVersion(String dir, Log log) {
         StringBuffer sb = new StringBuffer();
-        int r = ExecUtils.exec("git rev-list --all --count", log, dir, sb, null);
+        StringBuffer errOr = new StringBuffer();
+        int r = ExecUtils.exec("git rev-list --all --count", log, dir, sb, errOr);
         if (r != 0) {
-            throw new RuntimeException("exec result not zero");
+            throw new RuntimeException("exec result not zero:" + errOr);
         }
         sb.trimToSize();
         return NumberUtils.toInt(sb.toString());

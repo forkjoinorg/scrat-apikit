@@ -11,9 +11,9 @@ $!{utils.imports}
 export interface $!{method.upperName}Args{
 <!--        #for(param : method.params)-->
 <!--            #if(param.isRequired)-->
-    ${param.getName()}:${utils.toTypeString(param.getTypeInfo(), true)};
+    $!{param.getName()}:$!{utils.toTypeString(param.getTypeInfo())};
 <!--            #else-->
-    ${param.getName()}?:${utils.toTypeString(param.getTypeInfo(), true)};
+    $!{param.getName()}?:$!{utils.toTypeString(param.getTypeInfo())};
 <!--            #end-->
 <!--        #end-->
 }
@@ -27,19 +27,19 @@ export class $!{utils.name} extends AbstractApi {
 
 <!--#for(method : m.methodInfos)-->
 
-##下面是异步带tag
    /**
 $!{utils.formatBaseComment(method.comment,"     * ")}
     *
 $!{utils.requestComment(method,"     * ")}
     */
-    $!{method.name}($!{utils.params(method,true)}):Promise<$!{utils.resultTypeString(method)}>{
+    $!{method.name} = ($!{utils.params(method)}):Promise<$!{utils.resultTypeString(method)}>  => {
 <!--    #if(method.isHasPart)-->
         let _form = new FormData();
 <!--    #else-->
         let _form = {};
 <!--    #end-->
 
+        let _requestParams = {};
         let _headers = {};
         let _pathVars = {};
 
@@ -49,7 +49,7 @@ $!{utils.requestComment(method,"     * ")}
 <!--        #else(param.isFormParam)-->
         _form = Object.assign(_form, $!{param.getName()});
 <!--        #else(param.isRequestParam)-->
-        _form["$!{param.getAnnotationName()}"] = $!{param.getName()};
+        _requestParams["$!{param.getAnnotationName()}"] = $!{param.getName()};
 <!--        #else(param.isRequestPartFile || param.isRequestPartField)-->
 <!--    #if(param.typeInfo.isArray)-->
         for (let i = 0; i <$!{param.getName()}.length; i++) {
@@ -74,6 +74,7 @@ $!{utils.requestComment(method,"     * ")}
             type: RequestType.MULTIPART,
 <!--    #else-->
             formObject: _form,
+            requestParams: _requestParams,
             type: RequestType.FORM,
 <!--    #end-->
             isAccount: $!{method.account}

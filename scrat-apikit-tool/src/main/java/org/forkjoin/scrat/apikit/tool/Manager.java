@@ -1,5 +1,6 @@
 package org.forkjoin.scrat.apikit.tool;
 
+import org.forkjoin.scrat.apikit.core.Ignore;
 import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

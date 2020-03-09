@@ -60,11 +60,11 @@ public class GenerateUtils {
                 log.info("分析结果为空，不处理");
                 return;
             }
-            for (int i = 0; i < tasks.size(); i++) {
-                Task task = tasks.get(i);
+            for (int i = 1; i <= tasks.size(); i++) {
+                Task task = tasks.get(i-1);
                 log.info(
                         "开始执行任务,number:"
-                                + (i + 1)
+                                + i
                                 + ",type:"
                                 + task.getClass().getSimpleName()
                                 + ",task:"
@@ -79,7 +79,7 @@ public class GenerateUtils {
                     gitGenerator.setGetPassword(gitTask.getPassword());
                     gitGenerator.setGitEmail(gitTask.getAuthorEmail());
                     gitGenerator.setGitName(gitTask.getAuthorName());
-
+//                    gitGenerator.setVersion(task.getVersion());
                     gitGenerator.setGenerator((AbstractFileGenerator) createGenerator(manager, gitTask.getTask(), config));
 
                     gitGenerator.setSrcUri(gitTask.getSrcUri());
@@ -88,12 +88,13 @@ public class GenerateUtils {
                     manager.generate(gitGenerator);
                 } else {
                     Generator generator = createGenerator(manager, task, config);
+                    generator.setVersion(task.getVersion());
                     manager.generate(generator);
                 }
                 log.info(
                         "结束执行任务:"
-                                + (i + 1)
-                                + "type:"
+                                + i
+                                + ",type:"
                                 + task.getClass().getSimpleName()
                 );
             }
@@ -112,7 +113,7 @@ public class GenerateUtils {
 
             List<ClassInfo> allList = new ArrayList<>();
 
-            if(CollectionUtils.isNotEmpty(config.getJavaFilterList())){
+            if(config != null && CollectionUtils.isNotEmpty(config.getJavaFilterList())){
                 allList.addAll(config.getJavaFilterList());
             }
 
@@ -138,7 +139,7 @@ public class GenerateUtils {
 
             List<ClassInfo> allList = new ArrayList<>();
 
-            if(CollectionUtils.isNotEmpty(config.getJavaScriptFilterList())){
+            if(config != null && CollectionUtils.isNotEmpty(config.getJavaScriptFilterList())){
                 allList.addAll(config.getJavaScriptFilterList());
             }
 

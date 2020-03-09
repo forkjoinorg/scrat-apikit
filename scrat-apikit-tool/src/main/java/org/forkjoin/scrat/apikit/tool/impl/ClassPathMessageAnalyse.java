@@ -83,7 +83,8 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                 && (!typeInfo.isCollection())
                 && (!typeInfo.isGeneric())
                 && (!typeInfo.isObject())
-                && (!typeInfo.isEnum());
+                && (!typeInfo.isEnum())
+                && (!typeInfo.isMap());
     }
 
     public Set<TypeInfo> getEnumTypes() {
@@ -96,15 +97,17 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
             MessageInfo messageInfo = analyseMessage(classInfo);
             add(classInfo, messageInfo);
 
-            List<ClassInfo> offspringList = Flux
+
+            List<ClassInfo> offspringList =Flux.concat( Flux
                     .fromIterable(messageInfo.getProperties())
-                    .map(FieldInfo::getTypeInfo)
+                    .map(FieldInfo::getTypeInfo), Mono.justOrEmpty(messageInfo.getSuperType()))
                     .flatMapIterable(this::findAllByTypeArguments)
                     .filter(this::filterTypes)
                     .map(typeInfo -> new ClassInfo(typeInfo.getPackageName(), typeInfo.getName()))
                     .distinct()
                     .collectList()
                     .block();
+
 
             offspringList.forEach(ci -> {
                 if (messagesSet.add(ci)) {
@@ -202,7 +205,7 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                             }
                         }
                     } catch (AnalyseException ex) {
-                        log.info("错误,忽略属性继续:{}", method, ex);
+                        log.info("错误,忽略属性继续:{}", method);
                     }
                 }
             }

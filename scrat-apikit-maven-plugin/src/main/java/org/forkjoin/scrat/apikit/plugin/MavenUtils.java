@@ -88,8 +88,8 @@ public class MavenUtils {
 
 
         SystemStreamLog log = new SystemStreamLog();
-        log.info("urls:");
-        log.info(Arrays.toString(urls));
+//        log.info("urls:");
+//        log.info(Arrays.toString(urls));
 
         return apiClassRealm
                 .map(classRealm -> new URLClassLoader(urls, classRealm))

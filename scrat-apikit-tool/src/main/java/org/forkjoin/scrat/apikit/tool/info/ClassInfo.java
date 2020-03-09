@@ -1,5 +1,7 @@
 package org.forkjoin.scrat.apikit.tool.info;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Objects;
 
 public class ClassInfo implements Comparable<ClassInfo> {
@@ -84,7 +86,8 @@ public class ClassInfo implements Comparable<ClassInfo> {
 
     @Override
     public int compareTo(ClassInfo o) {
-        int i = this.packageName.compareTo(o.packageName);
+
+        int i =  StringUtils.compare(this.packageName, o.packageName);
         if (i == 0) {
             return this.name.compareTo(o.name);
         } else {

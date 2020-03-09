@@ -27,9 +27,8 @@ public class JavaScriptTask extends Task {
     @Override
     public String toString() {
         return "JavaScriptTask{" +
-                "version='" + version + '\'' +
-                ", jsPackageName='" + jsPackageName + '\'' +
+                "jsPackageName='" + jsPackageName + '\'' +
                 ", type=" + type +
-                '}';
+                "} " + super.toString();
     }
 }

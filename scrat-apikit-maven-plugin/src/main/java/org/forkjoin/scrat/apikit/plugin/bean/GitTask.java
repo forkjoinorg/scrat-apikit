@@ -95,8 +95,8 @@ public class GitTask extends Task{
                 ", task=" + task +
                 ", branch='" + branch + '\'' +
                 ", srcUri='" + srcUri + '\'' +
-                ", deleteUris='" + deleteUris + '\'' +
-                '}';
+                ", deleteUris=" + deleteUris +
+                "} " + super.toString();
     }
 
     public List<String> getDeleteUris() {

@@ -7,9 +7,14 @@ package $!{utils.getDistPack()};
 $!{utils.imports}
 
 
+import org.forkjoin.scrat.apikit.client.*;
+
+import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.AbstractMap.SimpleImmutableEntry;
+
+import java.util.concurrent.atomic.*;
 
 
 /**
@@ -24,13 +29,22 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 	 */
 <!--		#end-->
 <!--$!{utils.formatAnnotations(attr.annotations,"	")}-->
-	private $!{utils.toJavaTypeString(attr.typeInfo, false, true)} $!{attr.name};
+	private $!{utils.toJavaTypeString(attr.typeInfo, true, false)} $!{attr.name};
 <!--    #end-->
 <!--#end-->
 
 	public $!{m.name}(){
 	}
 
+<!--#if(!m.properties.empty())-->
+	public $!{m.name}($!{utils.getConstructorString()}){
+<!--    #for(attr : m.properties)-->
+<!--        #if(!attr.isSuperProperty)-->
+		this.$!{attr.name} = $!{attr.name};
+<!--		#end-->
+<!--    #end-->
+	}
+<!--#end-->
 
 <!--#for(attr : m.properties)-->
 
@@ -40,7 +54,7 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 $!{utils.formatComment(attr.comment,"	 * ")}
 	 */
 <!--		#end-->
-	public $!{utils.toJavaTypeString(attr.typeInfo,false, true)} $!{utils.toJavaGetName(attr)}() {
+	public $!{utils.toJavaTypeString(attr.typeInfo, true, false)} $!{utils.toJavaGetName(attr)}() {
 		return $!{attr.name};
 	}
 
@@ -49,28 +63,9 @@ $!{utils.formatComment(attr.comment,"	 * ")}
 $!{utils.formatComment(attr.comment,"	 * ")}
 	 */
 <!--		#end-->
-	public void $!{utils.toJavaSetName(attr)}($!{utils.toJavaTypeString(attr.typeInfo,false, true)} $!{attr.name}) {
+	public void $!{utils.toJavaSetName(attr)}($!{utils.toJavaTypeString(attr.typeInfo, true, false)} $!{attr.name}) {
 		this.$!{attr.name} = $!{attr.name};
 	}
-<!--    #end-->
-<!--#end-->
-##List的add函数
-<!--#for(attr : m.properties)-->
-<!--    #if(!attr.isSuperProperty)-->
-<!--		#if(attr.typeInfo.isArray&&(!attr.typeInfo.isBytes))-->
-
-<!--		#if(attr.comment)-->
-	/**
-$!{utils.formatComment(attr.comment,"	 * ")}
-	 */
-<!--		#end-->
-	public void $!{utils.toJavaAddName(attr)}($!{utils.toJavaTypeString(attr.typeInfo,false, false)} $!{attr.name}) {
-		if(this.$!{attr.name} == null){
-			this.$!{attr.name} = new $!{utils.toJavaTypeString(attr.typeInfo,false, true)} ();
-		}
-		this.$!{attr.name}.add($!{attr.name});
-	}
-<!--		#end-->
 <!--    #end-->
 <!--#end-->
 

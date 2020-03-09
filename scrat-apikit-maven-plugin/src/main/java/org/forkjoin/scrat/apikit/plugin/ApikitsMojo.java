@@ -4,8 +4,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -14,7 +12,6 @@ import org.forkjoin.scrat.apikit.plugin.bean.Config;
 import org.forkjoin.scrat.apikit.plugin.bean.GitInfo;
 import org.forkjoin.scrat.apikit.plugin.bean.Group;
 import org.forkjoin.scrat.apikit.plugin.bean.Task;
-import org.forkjoin.scrat.apikit.tool.info.ClassInfo;
 import reactor.core.publisher.Hooks;
 
 import java.io.File;
@@ -48,7 +45,7 @@ public class ApikitsMojo extends AbstractMojo {
     private String commitTemplate;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() {
         MavenProject project = session.getCurrentProject();
         String[] compileSourceRoots = project
                 .getCompileSourceRoots()
@@ -62,7 +59,7 @@ public class ApikitsMojo extends AbstractMojo {
         }
         String sourcePath = compileSourceRoots[0];
 
-        if (config.getGit() != null) {
+        if (config != null && config.getGit() != null) {
             gitGenerate(project, compileSourceRoots, sourcePath);
         } else {
             generate(project, compileSourceRoots, sourcePath);
@@ -88,28 +85,31 @@ public class ApikitsMojo extends AbstractMojo {
                 }
                 int version = GitUtils.getVersion(dir, getLog());
                 getLog().info("开始git version:" + version);
-                getLog().info("开始执行全部任务" + groups);
+                getLog().info("开始执行groups:" + groups);
 
 
-                for (Group group : groups) {
+                for (int i = 0, groupsSize = groups.size(); i < groupsSize; i++) {
+                    getLog().info("开始执行第" + i+ "组");
+                    Group group = groups.get(i);
                     List<Task> tasks = group.getTasks();
                     tasks.forEach(task -> {
-                        if(StringUtils.isNotEmpty(config.getNameMapperSource())){
+                        if (StringUtils.isNotEmpty(config.getNameMapperSource())) {
                             task.setNameMapperSource(config.getNameMapperSource());
                         }
-                        if(StringUtils.isNotEmpty(config.getNameMapperDist())){
+                        if (StringUtils.isNotEmpty(config.getNameMapperDist())) {
                             task.setNameMapperDist(config.getNameMapperDist());
                         }
-                        if(CollectionUtils.isNotEmpty(config.getCleanExcludes())){
+                        if (CollectionUtils.isNotEmpty(config.getCleanExcludes())) {
                             task.setCleanExcludes(config.getCleanExcludes());
                         }
-                        if(config.getClean() != null && config.getClean()){
+                        if (config.getClean() != null && config.getClean()) {
                             task.setClean(config.getClean());
                         }
                         String outPath = tempDir.resolve(task.getOutPath()).toAbsolutePath().toString();
                         task.setOutPath(outPath);
                         task.setVersion(Integer.toString(version + 1));
                         if (task.isClean()) {
+                            getLog().info("清理文件");
                             try {
                                 FileUtils.cleanDirectory(new File(outPath), task.getCleanExcludes() == null
                                         ? Collections.emptyList() : task.getCleanExcludes(), getLog());
@@ -119,11 +119,11 @@ public class ApikitsMojo extends AbstractMojo {
                             }
                         }
                     });
-                    getLog().info("开始执行第一组" + groups);
+
 
                     MavenUtils.generate(project, group, sourcePath, compileSourceRoots, config);
 
-                    getLog().info("结束第一组" + groups);
+                    getLog().info("结束第" + i + "组" + group);
                 }
 
                 //开始git 提交
@@ -147,14 +147,15 @@ public class ApikitsMojo extends AbstractMojo {
     private void generate(MavenProject project, String[] compileSourceRoots, String sourcePath) {
         try {
 
-            getLog().info("开始执行全部任务" + groups);
+            getLog().info("开始执行groups:" + groups);
 
-            for (Group group : groups) {
-                getLog().info("开始执行第一组" + groups);
+            for (int i = 0, groupsSize = groups.size(); i < groupsSize; i++) {
+                Group group = groups.get(i);
+                getLog().info("开始执行第" + i + "组" + groups);
 
                 MavenUtils.generate(project, group, sourcePath, compileSourceRoots, config);
 
-                getLog().info("结束第一组" + groups);
+                getLog().info("结束第" + i + "组" + groups);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

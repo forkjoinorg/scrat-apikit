@@ -1,6 +1,11 @@
 package org.forkjoin;
 
-public class TestForm extends BaseObj<String> {
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.StringJoiner;
+
+public class TestForm {
     private long longValue;
     private int intValue;
     private short shortValue;
@@ -10,6 +15,9 @@ public class TestForm extends BaseObj<String> {
     private double doubleValue;
     private boolean booleanValue;
     private String stringValue;
+    private byte[] bytesValue;
+    private Date data;
+    private LocalDateTime localDateTime;
 
 
     public long getLongValue() {
@@ -84,19 +92,45 @@ public class TestForm extends BaseObj<String> {
         this.stringValue = stringValue;
     }
 
+    public byte[] getBytesValue() {
+        return bytesValue;
+    }
+
+    public void setBytesValue(byte[] bytesValue) {
+        this.bytesValue = bytesValue;
+    }
+
+    public Date getData() {
+        return data;
+    }
+
+    public void setData(Date data) {
+        this.data = data;
+    }
+
+    public LocalDateTime getLocalDateTime() {
+        return localDateTime;
+    }
+
+    public void setLocalDateTime(LocalDateTime localDateTime) {
+        this.localDateTime = localDateTime;
+    }
+
     @Override
     public String toString() {
-        return "TestModel{" +
-                "longValue=" + longValue +
-                ", intValue=" + intValue +
-                ", shortValue=" + shortValue +
-                ", byteValue=" + byteValue +
-                ", charValue=" + charValue +
-                ", floatValue=" + floatValue +
-                ", doubleValue=" + doubleValue +
-                ", booleanValue=" + booleanValue +
-                ", stringValue='" + stringValue + '\'' +
-                '}';
+        return new StringJoiner(", ", TestForm.class.getSimpleName() + "[", "]")
+                .add("longValue=" + longValue)
+                .add("intValue=" + intValue)
+                .add("shortValue=" + shortValue)
+                .add("byteValue=" + byteValue)
+                .add("charValue=" + charValue)
+                .add("floatValue=" + floatValue)
+                .add("doubleValue=" + doubleValue)
+                .add("booleanValue=" + booleanValue)
+                .add("stringValue='" + stringValue + "'")
+                .add("bytesValue=" + Arrays.toString(bytesValue))
+                .add("data=" + data)
+                .toString();
     }
 }
 
