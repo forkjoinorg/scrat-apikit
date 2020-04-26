@@ -13,7 +13,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -138,7 +141,7 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
 
             parameters.put("apis", apis);
 
-            File file = Utils.packToPath(outPath,"src", "", "index", ".js");
+            File file = Utils.packToPath(outPath, "src", "", "index", ".js");
 
             execute(
                     parameters,
@@ -147,25 +150,25 @@ public class JavaScriptGenerator extends AbstractHttlGenerator {
             );
         }
         {
-            boolean isEmpty = context.getApis().getAll().isEmpty() && context.getEnums().isEmpty() &&  context.getMessages().isEmpty();
+            boolean isEmpty = context.getApis().getAll().isEmpty() && context.getEnums().isEmpty() && context.getMessages().isEmpty();
             File packageFile = Utils.packToPath(outPath, "", "package", ".json");
             ObjectNode packageJson = null;
             if (packageFile.exists()) {
                 packageJson = (ObjectNode) JsonUtils.mapper.readTree(packageFile);
             } else {
-                if(!isEmpty){
+                if (!isEmpty) {
                     try (InputStream inputStream = JavaScriptGenerator.class.getResourceAsStream(getTempl("package.json"))) {
                         packageJson = (ObjectNode) JsonUtils.mapper.readTree(inputStream);
                     }
                 }
             }
 
-            if(packageJson != null){
+            if (packageJson != null) {
                 packageJson.put("name", jsPackageName);
                 if (this.version != null) {
                     String prevVersionText = packageJson.get("version").asText();
                     if (prevVersionText != null) {
-                        prevVersionText = prevVersionText.replaceAll("([^.]+)\\.([^.]+)\\.([^.]+)", "2.$2." + version);
+                        prevVersionText = prevVersionText.replaceAll("([^.]+)\\.([^.]+)\\.([^.^-]+)(-{0,1})(.*)", "$1.$2." + version + "$4$5");
                     } else {
                         prevVersionText = "1.0." + version;
                     }

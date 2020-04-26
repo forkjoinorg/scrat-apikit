@@ -210,12 +210,22 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
                     isEnum = childTypeInfo.isEnum();
                 }
                 if (isContainsFilterList(typeInfo)) {
-                    sb.append(start)
-                            .append("    ")
-                            .append("EncodeUtils.encodeSingle($list,")
-                            .append(parentName).append(" + \"")
-                            .append(name).append("\", ")
-                            .append(name).append(");\n");
+                    if(this.isHasEncode(typeInfo)){
+                        sb.append(start).append(" if (").append(name).append(" != null) {\n");
+                        sb.append(start).append("    ")
+                                .append("EncodeUtils.encode($list, ")
+                                .append(parentName).append(" + \"")
+                                .append(name).append(".\", ")
+                                .append(name).append("::encode);");
+                        sb.append(start).append("}\n");
+                    }else{
+                        sb.append(start)
+                                .append("    ")
+                                .append("EncodeUtils.encodeSingle($list,")
+                                .append(parentName).append(" + \"")
+                                .append(name).append("\", ")
+                                .append(name).append(");\n");
+                    }
                 } else if (isCollectionObject && !isEnum) {
 
 //                    AtomicInteger $i = new AtomicInteger();
@@ -297,12 +307,22 @@ public class JavaMessageWrapper extends JavaWrapper<MessageInfo> {
             isEnum = childTypeInfo.isEnum();
         }
         if (isContainsFilterList(typeInfo)) {
-            sb.append(start)
-                    .append("    ")
-                    .append("EncodeUtils.encodeSingle($list,")
-                    .append(parentName).append(" + \"")
-                    .append(name).append("\", ")
-                    .append(name).append(");\n");
+            if(this.isHasEncode(typeInfo)){
+                sb.append(start).append(" if (").append(name).append(" != null) {\n");
+                sb.append(start).append("    ")
+                        .append("EncodeUtils.encode($list, ")
+                        .append(parentName).append(" + \"")
+                        .append(name).append(".\", ")
+                        .append(name).append("::encode);");
+                sb.append(start).append("}\n");
+            }else{
+                sb.append(start)
+                        .append("    ")
+                        .append("EncodeUtils.encodeSingle($list,")
+                        .append(parentName).append(" + \"")
+                        .append(name).append("\", ")
+                        .append(name).append(");\n");
+            }
         }else if (isCollectionObject && !isEnum) {
             sb.append(start).append(" if ($v").append(" != null && !$v").append(".isEmpty()) {\n");
             sb.append(start).append("for (int $i = 0; $i < ").append("$v.size(); $i++) {\n");

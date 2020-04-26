@@ -43,6 +43,7 @@ public class TypeInfo implements Cloneable {
     private boolean isWrapper = false;
 
     private TypeInfo() {
+
     }
 
     public TypeInfo(

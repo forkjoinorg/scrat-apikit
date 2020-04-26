@@ -9,6 +9,7 @@ import org.forkjoin.scrat.apikit.tool.info.ModuleInfo;
 import org.forkjoin.scrat.apikit.tool.info.TypeInfo;
 import org.forkjoin.scrat.apikit.tool.utils.CommentUtils;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -162,8 +163,23 @@ public class BuilderWrapper<T extends ModuleInfo> {
     public boolean isContainsFilterList(ClassInfo cls) {
         for (int i = 0; i < filterList.size(); i++) {
             ClassInfo classInfo = filterList.get(i);
-            if(classInfo.matchesEquals(cls.getPackageName(), cls.getName())){
+            if (classInfo.matchesEquals(cls.getPackageName(), cls.getName())) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+
+    public boolean isHasEncode(TypeInfo typeInfo) {
+        if (typeInfo.isOtherType()) {
+            try {
+                Class<?> aClass = Class.forName(typeInfo.getFullName());
+                //encode(String $parent, List<Entry<String, Object>> $list)
+                Method encode = aClass.getMethod("encode", String.class, List.class);
+                return encode!=null;
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
+                throw new RuntimeException(e);
             }
         }
         return false;

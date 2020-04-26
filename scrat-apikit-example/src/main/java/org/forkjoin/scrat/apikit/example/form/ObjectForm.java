@@ -5,6 +5,7 @@ import org.forkjoin.scrat.apikit.example.TestArrayForm;
 import org.forkjoin.scrat.apikit.example.type.StatusType;
 
 public class ObjectForm {
+    private String pUserId;
     private TestArrayForm testArray;
     private TestForm test;
     private StatusType statusType;
@@ -35,6 +36,21 @@ public class ObjectForm {
         this.testWrapper = testWrapper;
     }
 
+    public String getpUserId() {
+        return pUserId;
+    }
+
+    public void setpUserId(String pUserId) {
+        this.pUserId = pUserId;
+    }
+
+    public StatusType getStatusType() {
+        return statusType;
+    }
+
+    public void setStatusType(StatusType statusType) {
+        this.statusType = statusType;
+    }
 
     @Override
     public String toString() {

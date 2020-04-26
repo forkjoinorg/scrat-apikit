@@ -68,7 +68,8 @@ public class ApikitsMojo extends AbstractMojo {
 
     private void gitGenerate(MavenProject project, String[] compileSourceRoots, String sourcePath) {
         try {
-            Path tempDir = Files.createTempDirectory("apikit-git");
+            File temp = File.createTempFile("apikit-git", "temp");
+            Path tempDir = Files.createTempDirectory("apikit-git").toFile().getCanonicalFile().toPath();
             try {
                 getLog().info("git clone 成功");
                 String dir = tempDir.toAbsolutePath().toString();
@@ -129,7 +130,7 @@ public class ApikitsMojo extends AbstractMojo {
                 //开始git 提交
 
                 GitUtils.add(dir, getLog());
-                String message = String.format(commitTemplate, Integer.toString(version));
+                String message = String.format(commitTemplate, version);
                 boolean commit = GitUtils.commit(dir, message, getLog());
                 if (commit) {
                     GitUtils.push(dir, git.getBranch(), getLog());
