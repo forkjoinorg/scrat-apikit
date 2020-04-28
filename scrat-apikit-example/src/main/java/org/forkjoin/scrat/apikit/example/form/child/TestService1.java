@@ -18,6 +18,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/testService1")
+@Ignore
 public class TestService1 {
 
     @RequestMapping("/upload")

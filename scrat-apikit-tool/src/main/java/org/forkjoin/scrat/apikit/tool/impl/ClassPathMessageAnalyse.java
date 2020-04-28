@@ -98,7 +98,7 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
             add(classInfo, messageInfo);
 
 
-            List<ClassInfo> offspringList =Flux.concat( Flux
+            List<ClassInfo> offspringList = Flux.concat(Flux
                     .fromIterable(messageInfo.getProperties())
                     .map(FieldInfo::getTypeInfo), Mono.justOrEmpty(messageInfo.getSuperType()))
                     .flatMapIterable(this::findAllByTypeArguments)
@@ -188,10 +188,10 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                                         fieldComment = j.getMethodComment(method.getName());
                                         if (fieldComment == null) {
                                             Method commentMethod = propertyDescriptor.getWriteMethod();
-                                            if(commentMethod == null){
+                                            if (commentMethod == null) {
                                                 commentMethod = propertyDescriptor.getReadMethod();
                                             }
-                                            if(commentMethod != null){
+                                            if (commentMethod != null) {
                                                 fieldComment = j.getMethodComment(commentMethod.getName());
                                             }
                                         }
@@ -210,7 +210,11 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                 }
             }
 
-            messageInfo.sortPropertys();
+            if (jdtClassWappperOpt.isPresent()) {
+                jdtClassWappperOpt.get().sort(messageInfo.getProperties());
+            } else {
+                messageInfo.sortPropertys();
+            }
             return messageInfo;
         } catch (Throwable th) {
             log.info("分析message错误,classInfo:{}", classInfo, th);

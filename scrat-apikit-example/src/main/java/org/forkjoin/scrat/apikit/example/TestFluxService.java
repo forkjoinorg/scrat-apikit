@@ -4,6 +4,7 @@ package org.forkjoin.scrat.apikit.example;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.forkjoin.TestModel;
 import org.forkjoin.scrat.apikit.core.Account;
+import org.forkjoin.scrat.apikit.core.Ignore;
 import org.forkjoin.scrat.apikit.example.form.GenericForm;
 import org.forkjoin.scrat.apikit.example.form.ObjectForm;
 import org.forkjoin.scrat.apikit.example.form.ValidForm;
@@ -31,6 +32,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/testFlux/")
+@Ignore
 public class TestFluxService {
     /**
      * 获取当前时间

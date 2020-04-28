@@ -179,7 +179,7 @@ public class BuilderWrapper<T extends ModuleInfo> {
                 Method encode = aClass.getMethod("encode", String.class, List.class);
                 return encode!=null;
             } catch (ClassNotFoundException | NoSuchMethodException e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
             }
         }
         return false;

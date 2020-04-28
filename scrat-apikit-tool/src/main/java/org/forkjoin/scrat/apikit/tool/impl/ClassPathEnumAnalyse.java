@@ -71,13 +71,13 @@ public class ClassPathEnumAnalyse implements EnumAnalyse {
         try {
             Class<? extends Enum> cls = (Class<? extends Enum>) Class.forName(classInfo.getPackageName() + "." + classInfo.getName());
 
-            Optional<JdtClassWappper> jdtClassWappperOpt = JdtClassWappper.check(cls, context.getPath());
+            Optional<JdtEnumWappper> jdtEnumWappperOpt = JdtEnumWappper.check(cls, context.getPath());
 
             EnumInfo enumInfo = new EnumInfo();
             enumInfo.setPackageName(classInfo.getPackageName());
             enumInfo.setName(classInfo.getName());
             enumInfo.setEnumClass(cls);
-            jdtClassWappperOpt.ifPresent(j -> enumInfo.setComment(j.getClassComment()));
+            jdtEnumWappperOpt.ifPresent(j -> enumInfo.setComment(j.getClassComment()));
 
             Enum[] enumConstants = cls.getEnumConstants();
 
@@ -93,7 +93,7 @@ public class ClassPathEnumAnalyse implements EnumAnalyse {
                     })
                     .map(e -> {
                         EnumElementInfo enumElementInfo = new EnumElementInfo(e.name(), e.ordinal());
-                        jdtClassWappperOpt.map(p -> p.getEnumElementComment(enumElementInfo.getName())).ifPresent(enumElementInfo::setComment);
+                        jdtEnumWappperOpt.map(p -> p.getEnumElementComment(enumElementInfo.getName())).ifPresent(enumElementInfo::setComment);
                         return enumElementInfo;
                     })
                     .sorted(Comparator.comparingInt(EnumElementInfo::getOrdinal))

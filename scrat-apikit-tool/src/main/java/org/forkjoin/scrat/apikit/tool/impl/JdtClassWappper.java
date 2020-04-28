@@ -6,21 +6,30 @@ import org.eclipse.jdt.core.dom.*;
 import org.forkjoin.scrat.apikit.tool.AnalyseException;
 import org.forkjoin.scrat.apikit.tool.info.ImportsInfo;
 import org.forkjoin.scrat.apikit.tool.info.JavadocInfo;
+import org.forkjoin.scrat.apikit.tool.info.PropertyInfo;
+import reactor.core.publisher.Flux;
+import reactor.util.function.Tuple2;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author zuoge85 on 15/12/8.
  */
 public class JdtClassWappper {
     protected CompilationUnit node;
-    protected AbstractTypeDeclaration type;
+    protected TypeDeclaration type;
+
+    private Map<String, Tuple2<Long, FieldDeclaration>> filedMap;
+    private Map<String, Tuple2<Long, MethodDeclaration>> methodMap;
 
     protected ImportsInfo importsInfo = new ImportsInfo();
     private List<String> typeParameters = new ArrayList<>();
@@ -51,13 +60,23 @@ public class JdtClassWappper {
             throw new AnalyseException("未找到主类");
         }
 
-        AbstractTypeDeclaration type = (AbstractTypeDeclaration) first.get();
+        TypeDeclaration type = (TypeDeclaration) first.get();
         this.node = node;
         this.type = type;
+
+        filedMap = Flux.just(type.getFields()).index()
+                .collect(Collectors.toMap(f -> f.getT2().fragments().get(0).toString(), r -> r))
+                .block();
+
+
+        methodMap = Flux.just(type.getMethods()).index()
+                .collect(Collectors.toMap(m -> m.getT2().getName().getIdentifier(), r -> r))
+                .block();
+
     }
 
     private boolean isPublicType(Object t) {
-        return ((t instanceof TypeDeclaration) || (t instanceof EnumDeclaration)) && Modifier.isPublic(((AbstractTypeDeclaration)t).getModifiers());
+        return ((t instanceof TypeDeclaration) || (t instanceof EnumDeclaration)) && Modifier.isPublic(((AbstractTypeDeclaration) t).getModifiers());
     }
 
     public static Optional<JdtClassWappper> check(Class cls, String path) throws IOException {
@@ -70,47 +89,59 @@ public class JdtClassWappper {
 
 
     public JavadocInfo getMethodComment(String name) {
-        Optional<MethodDeclaration> methodOpt = Arrays
-                .stream(((TypeDeclaration)type).getMethods())
-                .filter(methodDeclaration -> Objects.equals(methodDeclaration.getName().getIdentifier(), name))
-                .findFirst();
-
-        if (!methodOpt.isPresent()) {
-            return null;
+        if (methodMap.containsKey(name)) {
+            MethodDeclaration methodDeclaration = methodMap.get(name).getT2();
+            return transform(methodDeclaration.getJavadoc());
         }
-
-        MethodDeclaration methodDeclaration = methodOpt.get();
-        return transform(methodDeclaration.getJavadoc());
+        return null;
     }
+
+    public void sort(ArrayList<PropertyInfo> properties) {
+        properties.sort(this::com);
+    }
+
+    private int com(PropertyInfo o1, PropertyInfo o2) {
+        long p1 = getPriority(o1);
+        long p2 = getPriority(o2);
+        if (p1 == 0 || p2 == 0) {
+            return o2.getName().compareTo(o1.getName());
+        }
+        return Long.compare(p2, p1);
+    }
+
+    private long getPriority(PropertyInfo propertyInfo) {
+        long priority = 0;
+        Tuple2<Long, FieldDeclaration> fieldTuple2 = filedMap.get(propertyInfo.getName());
+        Tuple2<Long, MethodDeclaration> methodTuple2;
+        if (fieldTuple2 != null) {
+            long l = (0xFF - (fieldTuple2.getT1() & 0xFF));
+            priority = priority | l << 48;
+        } else if ((methodTuple2 = methodMap.get(propertyInfo.getWriteName())) != null) {
+            long l = (0xFF - (methodTuple2.getT1() & 0xFF));
+            priority = priority | l << 32;
+        } else if ((methodTuple2 = methodMap.get(propertyInfo.getReadName())) != null) {
+            long l = (0xFF - (methodTuple2.getT1() & 0xFF));
+            priority = priority | l << 16;
+        }
+        return priority;
+    }
+
+//
+//    public JavadocInfo getFieldComment(String name) {
+////        Optional<FieldDeclaration> methodOpt = Arrays
+////                .stream(((TypeDeclaration)type).getFields())
+//
+//
+////        ArrayList<PropertyInfo> properties
+//    }
 
     public JavadocInfo getFieldComment(String name) {
-        Optional<FieldDeclaration> methodOpt = Arrays
-                .stream(((TypeDeclaration)type).getFields())
-                .filter(fieldDeclaration -> Objects.equals(fieldDeclaration.fragments().get(0).toString(), name))
-                .findFirst();
-
-        if (methodOpt.isPresent()) {
-            FieldDeclaration fieldDeclaration = methodOpt.get();
-            return transform(fieldDeclaration.getJavadoc());
-        } else {
+        Tuple2<Long, FieldDeclaration> fieldDeclarationTuple2 = filedMap.get(name);
+        if (fieldDeclarationTuple2 == null) {
             return null;
         }
-    }
-
-    public JavadocInfo getEnumElementComment(String name) {
-        EnumDeclaration type = (EnumDeclaration) this.type;
-        List<EnumConstantDeclaration> list = (List<EnumConstantDeclaration>)type.enumConstants();
-        Optional<EnumConstantDeclaration> methodOpt = list
-                .stream()
-                .filter(enumConstantDeclaration -> Objects.equals(enumConstantDeclaration.getName().getFullyQualifiedName(), name))
-                .findFirst();
-
-        if (methodOpt.isPresent()) {
-            EnumConstantDeclaration enumConstantDeclaration = methodOpt.get();
-            return transform(enumConstantDeclaration.getJavadoc());
-        } else {
-            return null;
-        }
+        FieldDeclaration fieldDeclaration = fieldDeclarationTuple2.getT2();
+        return transform(fieldDeclaration.getJavadoc());
     }
 
     public JavadocInfo getClassComment() {

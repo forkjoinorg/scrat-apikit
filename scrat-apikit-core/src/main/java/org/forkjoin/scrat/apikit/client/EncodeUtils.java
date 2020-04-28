@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class EncodeUtils {
+public final class EncodeUtils {
 //    public static List<Map.Entry<String, Object>> encode(String $parent, LinkedHashMap<String, BaseObj<Number>> objectMap) {
 //        if (objectMap != null) {
 //            objectMap.forEach(($k,$v)->{
