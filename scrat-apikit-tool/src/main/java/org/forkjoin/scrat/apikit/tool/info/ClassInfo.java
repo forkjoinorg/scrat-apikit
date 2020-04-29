@@ -60,7 +60,8 @@ public class ClassInfo implements Comparable<ClassInfo> {
     }
 
     public boolean matchesEquals(String packageName, String name) {
-        if (Objects.equals(packageName, this.packageName)) {
+        if (Objects.equals(packageName, this.packageName) || (packageName != null && packageName.matches(this.packageName))) {
+
             if (this.name.equals(name)) {
                 return true;
             } else if (name != null && name.matches(this.name)) {

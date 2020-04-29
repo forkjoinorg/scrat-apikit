@@ -11,14 +11,12 @@ import reactor.core.publisher.Flux;
 import reactor.util.function.Tuple2;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -70,6 +68,12 @@ public class JdtClassWappper {
 
 
         methodMap = Flux.just(type.getMethods()).index()
+                .filter(m -> {
+                    String methodName = m.getT2().getName().getIdentifier();
+                    return methodName.startsWith("get") ||
+                            methodName.startsWith("set") ||
+                            methodName.startsWith("is");
+                })
                 .collect(Collectors.toMap(m -> m.getT2().getName().getIdentifier(), r -> r))
                 .block();
 
@@ -87,13 +91,22 @@ public class JdtClassWappper {
         return Optional.empty();
     }
 
+    public JavadocInfo getMethodComment(Method method) {
+        Optional<MethodDeclaration> methodOpt = Arrays
+                .stream(((TypeDeclaration) type).getMethods())
+                .filter(methodDeclaration -> equalsMethod(methodDeclaration, method))
+                .findFirst();
 
-    public JavadocInfo getMethodComment(String name) {
-        if (methodMap.containsKey(name)) {
-            MethodDeclaration methodDeclaration = methodMap.get(name).getT2();
-            return transform(methodDeclaration.getJavadoc());
+        if (!methodOpt.isPresent()) {
+            return null;
         }
-        return null;
+
+        MethodDeclaration methodDeclaration = methodOpt.get();
+        return transform(methodDeclaration.getJavadoc());
+    }
+
+    private boolean equalsMethod(MethodDeclaration methodDeclaration, Method method) {
+        return methodDeclaration.getName().getIdentifier().equals(method.getName());
     }
 
     public void sort(ArrayList<PropertyInfo> properties) {

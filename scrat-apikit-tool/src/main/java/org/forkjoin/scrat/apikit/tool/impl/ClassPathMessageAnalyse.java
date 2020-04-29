@@ -185,14 +185,14 @@ public class ClassPathMessageAnalyse implements MessageAnalyse {
                                 jdtClassWappperOpt.ifPresent(j -> {
                                     JavadocInfo fieldComment = j.getFieldComment(name);
                                     if (fieldComment == null) {
-                                        fieldComment = j.getMethodComment(method.getName());
+                                        fieldComment = j.getMethodComment(method);
                                         if (fieldComment == null) {
                                             Method commentMethod = propertyDescriptor.getWriteMethod();
                                             if (commentMethod == null) {
                                                 commentMethod = propertyDescriptor.getReadMethod();
                                             }
                                             if (commentMethod != null) {
-                                                fieldComment = j.getMethodComment(commentMethod.getName());
+                                                fieldComment = j.getMethodComment(commentMethod);
                                             }
                                         }
                                     }

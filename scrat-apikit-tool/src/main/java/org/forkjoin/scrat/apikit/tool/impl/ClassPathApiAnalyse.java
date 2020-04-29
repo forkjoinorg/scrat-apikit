@@ -114,7 +114,7 @@ public class ClassPathApiAnalyse implements ApiAnalyse {
 
         ApiMethodInfo methodInfo = new ApiMethodInfo();
 
-        methodInfo.setComment(jdtClassWapper.getMethodComment(method.getName()));
+        methodInfo.setComment(jdtClassWapper.getMethodComment(method));
         methodInfo.setTypes(toActionTypes(requestMethods));
         methodInfo.setName(method.getName());
 
